@@ -14,7 +14,7 @@
 
 EXAMPLE=verilator_sst
 CC="${RVCC}"
-ARCH=rv64imafd
+ARCH=rv64gc
 #ABI=lp64
 
 all: $(EXAMPLE).exe

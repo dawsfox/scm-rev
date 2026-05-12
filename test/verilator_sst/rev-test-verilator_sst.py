@@ -20,6 +20,9 @@ sst.setStatisticLoadLevel(4)
 max_addr_gb = 1
 
 # For ease of defining verilator-side ports
+INOUT_PORT = "3"
+WRITE_PORT = "2"
+READ_PORT = "1"
 class PortDef:
     """ Wrapper class to make port definitions cleaner """
     def __init__(self):
@@ -84,7 +87,7 @@ comp_cpu.addParams({
         "enableCoProc" : 1,
         "startAddr" : "[0:0x00000000]",               # Starting address for core 0
         "memCost" : "[0:1:10]",                       # Memory loads required 1-10 cycles
-        "program" : os.getenv("REV_EXE", "coproc_ex.exe"),  # Target executable
+        "program" : os.getenv("REV_EXE", "verilator_sst.exe"),  # Target executable
         "splash" : 1                                  # Display the splash message
 })
 comp_cpu.enableAllStatistics()
@@ -111,9 +114,10 @@ tester.addParams({
 
 # VerilatorComponent just holds the subcomponent
 verilatorsst = sst.Component("vsst", "verilatorcomponent.VerilatorComponent")
-verilatorsst.addParams({
-    "numCycles" : numCycles
-})
+# default cycle count is pretty high; for first run, leave it out 
+#verilatorsst.addParams({
+#    "numCycles" : numCycles
+#})
 # subcomponent contains the actual verilated module
 model = verilatorsst.setSubComponent("model", "verilatorsstpicorv32.VerilatorSSTpicorv32")
 model.addParams({

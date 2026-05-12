@@ -1,5 +1,5 @@
 //
-// _RevCoProc_cc_
+// _RevCodeletCoProc_cc_
 //
 // Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
 // All Rights Reserved
@@ -8,16 +8,15 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#include "VerilatorPicoController.h"
+#include "RevCodeletCoProc.h"
 
-using namespace SST;
-using namespace RevCPU;
+namespace SST::RevCPU {
 
 
 // ---------------------------------------------------------------
-// VerilatorPicoController
+// RevCodeletCoProc
 // ---------------------------------------------------------------
-VerilatorPicoController::VerilatorPicoController(ComponentId_t id, Params& params, RevProc* parent)
+RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* parent)
   : RevCoProc(id, params, parent), num_instRetired(0) {
 
   std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
@@ -25,19 +24,15 @@ VerilatorPicoController::VerilatorPicoController(ComponentId_t id, Params& param
 
   registerStats();
 
-  //This would be used ot register the clock with SST Core
+  //This would be used to register the clock with SST Core
   /*registerClock( ClockFreq,
-    new Clock::Handler<VerilatorPicoController>(this, &VerilatorPicoController::ClockTick));
-    output->output("Registering subcomponent VerilatorPicoController with frequency=%s\n", ClockFreq.c_str());*/
+    new Clock::Handler<RevCodeletCoProc>(this, &RevCodeletCoProc::ClockTick));
+    output->output("Registering subcomponent RevCodeletCoProc with frequency=%s\n", ClockFreq.c_str());*/
 }
-
-VerilatorPicoController::~VerilatorPicoController(){
-
-};
 
 // TODO: What does issuing an instruction here look like? Presumably sending the instruction to 
 // the pico via native memory interface, but does the Pico need to request it?
-bool VerilatorPicoController::IssueInst(RevFeature *F, RevRegFile *R, RevMem *M, uint32_t Inst){
+bool RevCodeletCoProc::IssueInst(const RevFeature *F, RevRegFile *R, RevMem *M, uint32_t Inst){
   RevCoProcInst inst = RevCoProcInst(Inst, F, R, M);
   std::cout << "CoProc instruction issued: " << std::hex << Inst << std::dec << std::endl;
   //parent->ExternalDepSet(CreatePasskey(), F->GetHartToExecID(), 7, false);
@@ -45,16 +40,16 @@ bool VerilatorPicoController::IssueInst(RevFeature *F, RevRegFile *R, RevMem *M,
   return true;
 }
 
-void VerilatorPicoController::registerStats(){
+void RevCodeletCoProc::registerStats(){
   num_instRetired = registerStatistic<uint64_t>("InstRetired");
 }
 
-bool VerilatorPicoController::Reset(){
+bool RevCodeletCoProc::Reset(){
   InstQ = {};
   return true;
 }
 
-bool VerilatorPicoController::ClockTick(SST::Cycle_t cycle){
+bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
   if(!InstQ.empty()){
     uint32_t inst = InstQ.front().Inst;
     //parent->ExternalDepClear(CreatePasskey(), InstQ.front().Feature->GetHartToExecID(), 7, false);
@@ -69,3 +64,5 @@ bool VerilatorPicoController::ClockTick(SST::Cycle_t cycle){
     }
   return true;
 }
+
+}  // namespace SST:RevCPU

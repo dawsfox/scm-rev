@@ -1,5 +1,5 @@
 //
-// _VerilatorPicoRV32_h_
+// _RevCodeletCoProc_h_
 //
 // Copyright (C) 2017-2026 Tactical Computing Laboratories, LLC
 // All Rights Reserved
@@ -8,8 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#ifndef __VERILATOR_PICORV32_CONTROLLER_H__
-#define __VERILATOR_PICORV32_CONTROLLER_H__
+#ifndef __REV_CODELET_CO_PROC_H__
+#define __REV_CODELET_CO_PROC_H__
 
 // -- Standard Headers
 #include <cassert>
@@ -28,6 +28,7 @@ namespace SST::RevCPU {
 
 // Need to figure out where to define this class actually. In Rev namespace? 
 // Should SCM have a separate namespace?
+/*
 class SCMReg;
 
 struct RevCodelet {
@@ -44,12 +45,13 @@ struct RevCodelet {
   SCMReg        InputReg2;
   SCMReg        OutputReg;
 };
+*/
 
 
 // ---------------------------------------------------------------
 // RevCodeletCoProc
 // ---------------------------------------------------------------
-class RevCodeletCoProc : public RevCoProc {
+class RevCodeletCoProc final : public RevCoProc {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(RevCodeletCoProc, "revcpu",
                                 "RevCodeletCoProc",
@@ -61,18 +63,19 @@ public:
   // TODO: What params does this subcomponent need? These can be moved to the subcomponent
   SST_ELI_DOCUMENT_PARAMS(
       {"clockFreq", "Sets the clock frequency", "1GHz"},
+    { "verbose", "Set the verbosity of output for the co-processor", "0" },
       {"clockPort", "Sets the internal verilog clock port", "clock"},
       /* // move to subcomponent
       {"useVPI", "Is Verilator VPI used", "false"},
       {"resetVals", "Initial reset values for each labeled port", "port:Val"}, 
       */
-  )
+  );
 
   // Should have subcomponent for converter interface to the specific Verilated model 
   // TODO: define RevVerIntf class and uncomment
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
     //{"verintf", "Interface to Verilated Model", SST::RevCPU::RevVerIntf}
-  )
+  );
 
   // Register any ports used with this element
   SST_ELI_DOCUMENT_PORTS(
@@ -105,7 +108,7 @@ public:
       {"pcpi_rs2", "Input port", {"SST::VerilatorSST::PortEvent"}},
       {"eoi", "Input port", {"SST::VerilatorSST::PortEvent"}},
       {"trace_data", "Input port", {"SST::VerilatorSST::PortEvent"}}, 
-  )
+  );
 
   // Add statistics
   // TODO: what statistics do we want to gather at this level?
@@ -115,13 +118,20 @@ public:
                                "writes", 1},
                               {"PortReads",
                                "Counts the total number of output port reads",
-                               "reads", 1}, )
+                               "reads", 1}, 
+                              {"InstRetired", "Counts the total number of instructions retired", 
+                              "instructions", 1},
+                              );
 
   /// default constructor
-  RevCodeletCoProc(ComponentId_t id, const Params &params);
+  RevCodeletCoProc( ComponentId_t id, Params& params, RevCore* parent );
 
   /// default destructor
-  virtual ~RevCodeletCoProc();
+  ~RevCodeletCoProc() final = default;
+
+  /// RevCodeletCoProc: disallow copying and assignment
+  RevCodeletCoProc( const RevCodeletCoProc& )            = delete;
+  RevCodeletCoProc& operator=( const RevCodeletCoProc& ) = delete;
 
   // Enum for referencing statistics
   enum CoProcStats{
@@ -129,37 +139,35 @@ public:
   };
 
   /// RevCodeletCoProc: clock tick function - currently not registeres with SST, called by RevCPU
-  virtual bool ClockTick(SST::Cycle_t cycle);
+  bool ClockTick(SST::Cycle_t cycle) final;
 
   void registerStats();
 
   /// RevCodeletCoProc: Enqueue Inst into the InstQ and return
-  virtual bool IssueInst(RevFeature *F, RevRegFile *R, RevMem *M, uint32_t Inst);
+  bool IssueInst(const RevFeature *F, RevRegFile *R, RevMem *M, uint32_t Inst) final;
 
   /// RevCodeletCoProc: Reset the co-processor by emmptying the InstQ
-  virtual bool Reset();
+  bool Reset() final;
 
   /// RevCodeletCoProc: Called when the attached RevProc completes simulation. Could be used to
   ///                   also signal to SST that the co-processor is done if ClockTick is registered
   ///                   to SSTCore vs. being driven by RevCPU
-  virtual bool Teardown() { return Reset(); }
+  bool Teardown() final { return Reset(); }
 
   /// RevCodeletCoProc: Returns true if instruction queue is empty
-  virtual bool IsDone(){ return InstQ.empty();}
+  bool IsDone() final { return InstQ.empty();}
 
 
 private:
   // Private data
   struct RevCoProcInst {
-    RevCoProcInst() = default;
-    RevCoProcInst(uint32_t inst, RevFeature* F, RevRegFile* R, RevMem* M) :
-      Inst(inst), Feature(F), RegFile(R), Mem(M) {}
-    RevCoProcInst(const RevCoProcInst& rhs) = default;
+    RevCoProcInst( uint32_t inst, const RevFeature* F, RevRegFile* R, RevMem* M )
+      : Inst( inst ), Feature( F ), RegFile( R ), Mem( M ) {}
 
-    uint32_t      Inst = 0;
-    RevFeature*   Feature = nullptr;
-    RevRegFile*   RegFile = nullptr;
-    RevMem*       Mem = nullptr;
+    uint32_t const          Inst;
+    const RevFeature* const Feature;
+    RevRegFile* const       RegFile;
+    RevMem* const           Mem;
   };
 
   /// RevCodeletCoProc: Total number of instructions retired
@@ -232,7 +240,7 @@ private:
   // Private data
   std::string clockPort; ///< verilator named clock port
 
-};
+}; // class RevCodeletCoProc
 
 } // namespace SST::RevCPU
 

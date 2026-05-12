@@ -264,6 +264,7 @@ add_rev_test(RDCYCLE rdcycle 5 "test_level=2;rv64;zicntr")
 add_rev_test(RDTIME rdtime 5 "test_level=2;rv64;zicntr")
 add_rev_test(RDINSTRET rdinstret 5 "test_level=2;memh;rv64;zicntr")
 add_rev_test(Zfa zfa 30 "rv64" SCRIPT "run_zfa_tests.sh")
+add_rev_test(VERILATORSST verilator_sst 30 "memh;rv32" SCRIPT "run_verilator_sst.sh")
 
 # Not all toolchains have support for Zfa yet, so we test and skip Zfa tests with a warning
 execute_process(COMMAND ${RVCXX} -c -march=rv64gc_zfa zfa.cc WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/zfa ERROR_VARIABLE ZFA_Missing)
