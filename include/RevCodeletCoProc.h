@@ -24,6 +24,8 @@
 // -- Rev Headers 
 #include "RevCoProc.h"
 
+#include "verilatorSSTAPI.h"
+
 namespace SST::RevCPU {
 
 // Need to figure out where to define this class actually. In Rev namespace? 
@@ -47,6 +49,20 @@ struct RevCodelet {
 };
 */
 
+// struct used to define characteristics of each exposed port
+struct PortDef {
+  uint32_t PortId;
+  uint32_t Size;
+  bool Write;
+  bool Read;
+
+  // Default constructor
+  PortDef() : PortId( 0 ), Size( 0 ), Write( false ), Read ( false ) { }
+
+  // Full constructor
+  PortDef( uint32_t PortId, uint32_t Size, bool Write, bool Read ) :
+              PortId( PortId ), Size( Size ), Write( Write ), Read( Read ) { }
+};
 
 // ---------------------------------------------------------------
 // RevCodeletCoProc
@@ -63,8 +79,9 @@ public:
   // TODO: What params does this subcomponent need? These can be moved to the subcomponent
   SST_ELI_DOCUMENT_PARAMS(
       {"clockFreq", "Sets the clock frequency", "1GHz"},
-    { "verbose", "Set the verbosity of output for the co-processor", "0" },
       {"clockPort", "Sets the internal verilog clock port", "clock"},
+    {"num_ports",   "Number of ports",          "0"},
+    {"portMap",     "portname:id:size:direction pairings",     "" },
       /* // move to subcomponent
       {"useVPI", "Is Verilator VPI used", "false"},
       {"resetVals", "Initial reset values for each labeled port", "port:Val"}, 
@@ -79,6 +96,11 @@ public:
 
   // Register any ports used with this element
   SST_ELI_DOCUMENT_PORTS(
+    {"port%(num_ports)d",
+      "Ports which connect to tested verilated subcomponents.",
+      {"SST::VerilatorSST::PortEvent", ""}
+    }
+  /*
       {"clk", "Output Port", {"SST::VerilatorSST::PortEvent"}},
       {"resetn", "Output Port", {"SST::VerilatorSST::PortEvent"}},
       {"mem_ready", "Output Port", {"SST::VerilatorSST::PortEvent"}},
@@ -108,6 +130,7 @@ public:
       {"pcpi_rs2", "Input port", {"SST::VerilatorSST::PortEvent"}},
       {"eoi", "Input port", {"SST::VerilatorSST::PortEvent"}},
       {"trace_data", "Input port", {"SST::VerilatorSST::PortEvent"}}, 
+  */
   );
 
   // Add statistics
@@ -157,6 +180,14 @@ public:
   /// RevCodeletCoProc: Returns true if instruction queue is empty
   bool IsDone() final { return InstQ.empty();}
 
+  void InitPortMap( const SST::Params& params );
+
+  void InitLinkConfig( const SST::Params& params );
+
+  void RecvPortEvent( SST::Event* ev, unsigned portId );
+
+  // Splits a parameter array into tokens of std::string values
+  void splitStr(const std::string& s, char c, std::vector<std::string>& v);
 
 private:
   // Private data
@@ -177,7 +208,13 @@ private:
   std::queue<RevCoProcInst> InstQ;
 
   SST::Cycle_t cycleCount;
+
+  SST::Link** Links;
+  std::map<std::string, PortDef> PortMap; // access port characteristics based on name
+  std::vector<PortDef> InfoVec;           // access port characteristics by ID number
+
   // Generated links for each port
+  /*
   SST::Link *link_clk;
   SST::Link *link_resetn;
   SST::Link *link_mem_ready;
@@ -205,6 +242,7 @@ private:
   SST::Link *link_pcpi_rs2;
   SST::Link *link_eoi;
   SST::Link *link_trace_data;
+  */
 
   // Private functions
   // TODO: these need to be updated probably. Should only need handle functions 

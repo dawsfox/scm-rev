@@ -95,7 +95,8 @@ comp_cpu.enableAllStatistics()
 subcomp_codelet_intf = comp_cpu.setSubComponent("co_proc", "revcpu.RevCodeletCoProc")
 subcomp_codelet_intf.addParams({
     "clock" : "1.0GHz",
-    "verbose" : 6
+    "num_ports" : picoPorts.getNumPorts(),
+    "portMap" : picoPorts.getPortMap()
     })
 
 """
@@ -131,7 +132,9 @@ Links = [ ]
 for i in range(picoPorts.getNumPorts()):
     #Links.append( sst.Link( f"link{i}" ) )
     Links.append( sst.Link( f"pico_{picoPorts.getPortName( i )}" ) )
-    Links[i].connect( ( model, picoPorts.getPortName( i ), "0ps" ), ( subcomp_codelet_intf, picoPorts.getPortName( i ), "0ps" ) )
+    #Links[i].connect( ( model, picoPorts.getPortName( i ), "0ps" ), ( subcomp_codelet_intf, picoPorts.getPortName( i ), "0ps" ) )
+    # Changed RevCodeletCoProc to accept port# instead of named ports
+    Links[i].connect( ( model, picoPorts.getPortName( i ), "0ps" ), ( subcomp_codelet_intf, f"port{i}", "0ps" ) )
 
 
 sst.setStatisticOutput("sst.statOutputCSV")
