@@ -210,13 +210,13 @@ public:
   virtual ~VerilatorSSTBase();
 
   /// VerilatorSSTBase: initialization function
-  virtual void init(unsigned int phase) = 0;
+  virtual void init(unsigned int phase) override = 0;
 
   /// VerilatorSSTBase: setup function
-  virtual void setup() = 0;
+  virtual void setup() override = 0;
 
   /// VerilatorSSTBase: finish function
-  virtual void finish() = 0;
+  virtual void finish() override = 0;
 
   /// VerliatorSSTBase: clock tick function
   virtual bool clock(SST::Cycle_t cycle) = 0;
