@@ -57,221 +57,228 @@ VerilatorSSTpicorv32::VerilatorSSTpicorv32(ComponentId_t id,
 
   // attempt to build the reset value tables
   initResetValues(params);
-  link_clk = configureLink("clk", "0ns",
-                           new Event::Handler<VerilatorSSTpicorv32>(
-                               this, &VerilatorSSTpicorv32::handle_clk));
+  link_clk = configureLink(
+      "clk", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_clk>(this));
   if (nullptr == link_clk) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_clk\n");
   }
-  link_resetn = configureLink("resetn", "0ns",
-                              new Event::Handler<VerilatorSSTpicorv32>(
-                                  this, &VerilatorSSTpicorv32::handle_resetn));
+  link_resetn = configureLink(
+      "resetn", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_resetn>(this));
   if (nullptr == link_resetn) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_resetn\n");
   }
-  link_mem_ready =
-      configureLink("mem_ready", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_ready));
+  link_mem_ready = configureLink(
+      "mem_ready", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_ready>(this));
   if (nullptr == link_mem_ready) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_ready\n");
   }
-  link_pcpi_wr =
-      configureLink("pcpi_wr", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_wr));
+  link_pcpi_wr = configureLink(
+      "pcpi_wr", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_wr>(this));
   if (nullptr == link_pcpi_wr) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_wr\n");
   }
-  link_pcpi_wait =
-      configureLink("pcpi_wait", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_wait));
+  link_pcpi_wait = configureLink(
+      "pcpi_wait", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_wait>(this));
   if (nullptr == link_pcpi_wait) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_wait\n");
   }
-  link_pcpi_ready =
-      configureLink("pcpi_ready", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_ready));
+  link_pcpi_ready = configureLink(
+      "pcpi_ready", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_ready>(this));
   if (nullptr == link_pcpi_ready) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_ready\n");
   }
-  link_mem_rdata =
-      configureLink("mem_rdata", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_rdata));
+  link_mem_rdata = configureLink(
+      "mem_rdata", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_rdata>(this));
   if (nullptr == link_mem_rdata) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_rdata\n");
   }
-  link_pcpi_rd =
-      configureLink("pcpi_rd", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_rd));
+  link_pcpi_rd = configureLink(
+      "pcpi_rd", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_rd>(this));
   if (nullptr == link_pcpi_rd) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_rd\n");
   }
-  link_irq = configureLink("irq", "0ns",
-                           new Event::Handler<VerilatorSSTpicorv32>(
-                               this, &VerilatorSSTpicorv32::handle_irq));
+  link_irq = configureLink(
+      "irq", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_irq>(this));
   if (nullptr == link_irq) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_irq\n");
   }
-  link_trap = configureLink("trap", "0ns",
-                            new Event::Handler<VerilatorSSTpicorv32>(
-                                this, &VerilatorSSTpicorv32::handle_trap));
+  link_trap = configureLink(
+      "trap", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_trap>(this));
   if (nullptr == link_trap) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_trap\n");
   }
-  link_mem_valid =
-      configureLink("mem_valid", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_valid));
+  link_mem_valid = configureLink(
+      "mem_valid", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_valid>(this));
   if (nullptr == link_mem_valid) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_valid\n");
   }
-  link_mem_instr =
-      configureLink("mem_instr", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_instr));
+  link_mem_instr = configureLink(
+      "mem_instr", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_instr>(this));
   if (nullptr == link_mem_instr) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_instr\n");
   }
-  link_mem_wstrb =
-      configureLink("mem_wstrb", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_wstrb));
+  link_mem_wstrb = configureLink(
+      "mem_wstrb", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_wstrb>(this));
   if (nullptr == link_mem_wstrb) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_wstrb\n");
   }
-  link_mem_la_read =
-      configureLink("mem_la_read", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_la_read));
+  link_mem_la_read = configureLink(
+      "mem_la_read", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_la_read>(this));
   if (nullptr == link_mem_la_read) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_la_read\n");
   }
-  link_mem_la_write =
-      configureLink("mem_la_write", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_la_write));
+  link_mem_la_write = configureLink(
+      "mem_la_write", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_la_write>(this));
   if (nullptr == link_mem_la_write) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_la_write\n");
   }
-  link_mem_la_wstrb =
-      configureLink("mem_la_wstrb", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_la_wstrb));
+  link_mem_la_wstrb = configureLink(
+      "mem_la_wstrb", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_la_wstrb>(this));
   if (nullptr == link_mem_la_wstrb) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_la_wstrb\n");
   }
-  link_pcpi_valid =
-      configureLink("pcpi_valid", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_valid));
+  link_pcpi_valid = configureLink(
+      "pcpi_valid", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_valid>(this));
   if (nullptr == link_pcpi_valid) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_valid\n");
   }
-  link_trace_valid =
-      configureLink("trace_valid", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_trace_valid));
+  link_trace_valid = configureLink(
+      "trace_valid", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_trace_valid>(this));
   if (nullptr == link_trace_valid) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_trace_valid\n");
   }
-  link_mem_addr =
-      configureLink("mem_addr", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_addr));
+  link_mem_addr = configureLink(
+      "mem_addr", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_addr>(this));
   if (nullptr == link_mem_addr) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_addr\n");
   }
-  link_mem_wdata =
-      configureLink("mem_wdata", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_wdata));
+  link_mem_wdata = configureLink(
+      "mem_wdata", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_wdata>(this));
   if (nullptr == link_mem_wdata) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_wdata\n");
   }
-  link_mem_la_addr =
-      configureLink("mem_la_addr", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_la_addr));
+  link_mem_la_addr = configureLink(
+      "mem_la_addr", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_la_addr>(this));
   if (nullptr == link_mem_la_addr) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_la_addr\n");
   }
-  link_mem_la_wdata =
-      configureLink("mem_la_wdata", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_mem_la_wdata));
+  link_mem_la_wdata = configureLink(
+      "mem_la_wdata", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_mem_la_wdata>(this));
   if (nullptr == link_mem_la_wdata) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_mem_la_wdata\n");
   }
-  link_pcpi_insn =
-      configureLink("pcpi_insn", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_insn));
+  link_pcpi_insn = configureLink(
+      "pcpi_insn", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_insn>(this));
   if (nullptr == link_pcpi_insn) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_insn\n");
   }
-  link_pcpi_rs1 =
-      configureLink("pcpi_rs1", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_rs1));
+  link_pcpi_rs1 = configureLink(
+      "pcpi_rs1", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_rs1>(this));
   if (nullptr == link_pcpi_rs1) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_rs1\n");
   }
-  link_pcpi_rs2 =
-      configureLink("pcpi_rs2", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_pcpi_rs2));
+  link_pcpi_rs2 = configureLink(
+      "pcpi_rs2", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_pcpi_rs2>(this));
   if (nullptr == link_pcpi_rs2) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_pcpi_rs2\n");
   }
-  link_eoi = configureLink("eoi", "0ns",
-                           new Event::Handler<VerilatorSSTpicorv32>(
-                               this, &VerilatorSSTpicorv32::handle_eoi));
+  link_eoi = configureLink(
+      "eoi", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_eoi>(this));
   if (nullptr == link_eoi) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_eoi\n");
   }
-  link_trace_data =
-      configureLink("trace_data", "0ns",
-                    new Event::Handler<VerilatorSSTpicorv32>(
-                        this, &VerilatorSSTpicorv32::handle_trace_data));
+  link_trace_data = configureLink(
+      "trace_data", "0ns",
+      new Event::Handler2<VerilatorSSTpicorv32,
+                          &VerilatorSSTpicorv32::handle_trace_data>(this));
   if (nullptr == link_trace_data) {
     output->fatal(CALL_INFO, -1,
                   "Error: was unable to configureLink link_trace_data\n");
   }
 
   // register the clock
-  registerClock(clockFreq, new Clock::Handler<VerilatorSSTpicorv32>(
-                               this, &VerilatorSSTpicorv32::clock));
+  registerClock(
+      clockFreq,
+      new Clock::Handler2<VerilatorSSTpicorv32, &VerilatorSSTpicorv32::clock>(
+          this));
 
   // register statistics
   for (auto &portEntry : Ports) {
