@@ -38,6 +38,13 @@ RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* pa
     output->output("Registering subcomponent RevCodeletCoProc with frequency=%s\n", ClockFreq.c_str());*/
 }
 
+RevCodeletCoProc::~RevCodeletCoProc() {
+  // delete the packet "state" space we created for each port
+  for ( auto it = PortMap.begin(); it != PortMap.end(); ++it  ) {
+    delete it->second.second;
+  }
+}
+
 void RevCodeletCoProc::splitStr(const std::string& s,
                                 char c,
                                 std::vector<std::string>& v){
@@ -81,7 +88,11 @@ void RevCodeletCoProc::InitPortMap( const SST::Params& params ) {
     const bool portIsWriteable = (static_cast<uint8_t>(portType) & static_cast<uint8_t>(VerilatorSST::VPortType::V_INPUT)) > 0;
     const bool portIsReadable = (static_cast<uint8_t>(portType) & static_cast<uint8_t>(VerilatorSST::VPortType::V_OUTPUT)) > 0;
     // put the port info in the map and the info vector
-    PortMap[vstr[0]] = PortDef( static_cast<uint32_t>(portId), static_cast<uint32_t>(portSize), portIsWriteable, portIsReadable ); 
+    // also add space for where the current value will be stored
+    PortDef port_info( static_cast<uint32_t>(portId), static_cast<uint32_t>(portSize), portIsWriteable, portIsReadable );
+    PortState entry(port_info, new std::vector<uint8_t>(portSize));
+    PortMap[vstr[0]] = entry;
+    //PortMap[vstr[0]] = PortDef( static_cast<uint32_t>(portId), static_cast<uint32_t>(portSize), portIsWriteable, portIsReadable ); 
     InfoVec[portId].PortId = static_cast<uint32_t>(portId);
     InfoVec[portId].Size = static_cast<uint32_t>(portSize); 
     InfoVec[portId].Write = portIsWriteable;
@@ -111,61 +122,93 @@ void RevCodeletCoProc::RecvPortEvent( SST::Event* ev, unsigned portId ) {
   output->verbose( CALL_INFO, 2, 0, "Received an event\n");
   SST::VerilatorSST::PortEvent* fromPort = static_cast<SST::VerilatorSST::PortEvent*>( ev );
   if(fromPort) {
-
-    if(portId == 0) {
+    // Writes don't receive responses, and unless we have an inout port, 
+    // we won't need to read any write port, so only implement read data receiving
+    if(portId < 10) {
+      // This should not be entered, since these are write ports
+      output->fatal( CALL_INFO, -1, "Error: response from port associated with writing only\n" );
     // event from clk
-    } else if (portId == 1) {
     // event from resetn
-    } else if (portId == 2) {
     // event from mem_ready
-    } else if (portId == 3) {
     // event from pcpi_wr
-    } else if (portId == 4) {
     // event from pcpi_wait
-    } else if (portId == 5) {
     // event from pcpi_ready
-    } else if (portId == 6) {
     // event from mem_rdata
-    } else if (portId == 7) {
     // event from pcpi_rd
-    } else if (portId == 8) {
     // event from irq
     } else if (portId == 9) {
     // event from trap
+      // trap and the rest are READ_PORTs
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'trap' PortEvent is not a READ");
+      *(PortMap["port9"].second) = fromPort->getPacket();
     } else if (portId == 10) {
     // event from mem_valid
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'memvalid' PortEvent is not a READ");
+      *(PortMap["port10"].second) = fromPort->getPacket();
     } else if (portId == 11) {
     // event from mem_instr
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_instr' PortEvent is not a READ");
+      *(PortMap["port11"].second) = fromPort->getPacket();
     } else if (portId == 12) {
     // event from mem_wstrb
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_wstrb' PortEvent is not a READ");
+      *(PortMap["port12"].second) = fromPort->getPacket();
     } else if (portId == 13) {
     // event from mem_la_read
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_la_read' PortEvent is not a READ");
+      *(PortMap["port13"].second) = fromPort->getPacket();
     } else if (portId == 14) {
     // event from mem_la_write
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_la_write' PortEvent is not a READ");
+      *(PortMap["port14"].second) = fromPort->getPacket();
     } else if (portId == 15) {
     // event from mem_la_wstrb
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_la_wstrb' PortEvent is not a READ");
+      *(PortMap["port15"].second) = fromPort->getPacket();
     } else if (portId == 16) {
     // event from pcpi_valid
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'pcpi_valid' PortEvent is not a READ");
+      *(PortMap["port16"].second) = fromPort->getPacket();
     } else if (portId == 17) {
     // event from trace_valid
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'trace_valid' PortEvent is not a READ");
+      *(PortMap["port17"].second) = fromPort->getPacket();
     } else if (portId == 18) {
     // event from mem_addr
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_addr' PortEvent is not a READ");
+      *(PortMap["port18"].second) = fromPort->getPacket();
     } else if (portId == 19) {
     // event from mem_wdata
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_wdata' PortEvent is not a READ");
+      *(PortMap["port19"].second) = fromPort->getPacket();
     } else if (portId == 20) {
     // event from mem_la_addr
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_la_addr' PortEvent is not a READ");
+      *(PortMap["port20"].second) = fromPort->getPacket();
     } else if (portId == 21) {
     // event from mem_la_wdata
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'mem_la_wdata' PortEvent is not a READ");
+      *(PortMap["port21"].second) = fromPort->getPacket();
     } else if (portId == 22) {
     // event from pcpi_insn
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'pcpi_insn' PortEvent is not a READ");
+      *(PortMap["port22"].second) = fromPort->getPacket();
     } else if (portId == 23) {
     // event from pcpi_rs1
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'pcpi_rs1' PortEvent is not a READ");
+      *(PortMap["port23"].second) = fromPort->getPacket();
     } else if (portId == 24) {
     // event from pcpi_rs2
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'pcpi_rs2' PortEvent is not a READ");
+      *(PortMap["port24"].second) = fromPort->getPacket();
     } else if (portId == 25) {
     // event from eoi
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'eoi' PortEvent is not a READ");
+      *(PortMap["port25"].second) = fromPort->getPacket();
     } else if (portId == 26) {
     // event from trace_data
+      assert(fromPort->getAction() == VerilatorSST::PortEventAction::READ && "Error: 'trace_data' PortEvent is not a READ");
+      *(PortMap["port26"].second) = fromPort->getPacket();
     } else {
       output->fatal( CALL_INFO, -1, "Error: portId not recognized\n" );
     }

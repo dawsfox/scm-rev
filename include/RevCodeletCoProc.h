@@ -64,6 +64,8 @@ struct PortDef {
               PortId( PortId ), Size( Size ), Write( Write ), Read( Read ) { }
 };
 
+typedef std::pair<PortDef, std::vector<uint8_t>*> PortState;
+
 // ---------------------------------------------------------------
 // RevCodeletCoProc
 // ---------------------------------------------------------------
@@ -150,7 +152,7 @@ public:
   RevCodeletCoProc( ComponentId_t id, Params& params, RevCore* parent );
 
   /// default destructor
-  ~RevCodeletCoProc() final = default;
+  ~RevCodeletCoProc() final;
 
   /// RevCodeletCoProc: disallow copying and assignment
   RevCodeletCoProc( const RevCodeletCoProc& )            = delete;
@@ -210,7 +212,8 @@ private:
   SST::Cycle_t cycleCount;
 
   SST::Link** Links;
-  std::map<std::string, PortDef> PortMap; // access port characteristics based on name
+  //std::map<std::string, PortDef> PortMap; // access port characteristics based on name
+  std::map<std::string, PortState> PortMap;
   std::vector<PortDef> InfoVec;           // access port characteristics by ID number
 
   // Generated links for each port
