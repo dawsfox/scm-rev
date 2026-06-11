@@ -64,6 +64,14 @@ struct PortDef {
               PortId( PortId ), Size( Size ), Write( Write ), Read( Read ) { }
 };
 
+/* Save this for later, getting ahead of myself
+struct PortState {
+  PortDef PortInfo;
+  std::vector<uint8_t> * PortData;
+  // here is where a pointer to a converter would go
+}
+*/
+
 typedef std::pair<PortDef, std::vector<uint8_t>*> PortState;
 
 // ---------------------------------------------------------------
@@ -81,9 +89,12 @@ public:
   // TODO: What params does this subcomponent need? These can be moved to the subcomponent
   SST_ELI_DOCUMENT_PARAMS(
       {"clockFreq", "Sets the clock frequency", "1GHz"},
-      {"clockPort", "Sets the internal verilog clock port", "clock"},
-    {"num_ports",   "Number of ports",          "0"},
-    {"portMap",     "portname:id:size:direction pairings",     "" },
+      {"clockPort", "Name of the internal verilog clock port", "clock"},
+      {"resetLowPort", "Name of the internal reset (active low) port if there is one", "NONE"},
+      {"resetHighPort", "Name of the internal reset (active high) port if there is one", "NONE"},
+      {"num_ports",   "Number of ports",          "0"},
+      { "verbose", "Set the verbosity of output for the attached co-processor", "0" },
+      {"portMap",     "portname:id:size:direction pairings",     "" },
       /* // move to subcomponent
       {"useVPI", "Is Verilator VPI used", "false"},
       {"resetVals", "Initial reset values for each labeled port", "port:Val"}, 
@@ -102,37 +113,6 @@ public:
       "Ports which connect to tested verilated subcomponents.",
       {"SST::VerilatorSST::PortEvent", ""}
     }
-  /*
-      {"clk", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"resetn", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_ready", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_wr", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_wait", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_ready", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_rdata", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_rd", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      {"irq", "Output Port", {"SST::VerilatorSST::PortEvent"}},
-      // Outputs above: driving to PICO
-      // Inputs below: coming from PICO
-      {"trap", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_valid", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_instr", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_wstrb", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_la_read", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_la_write", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_la_wstrb", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_valid", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"trace_valid", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_addr", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_wdata", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_la_addr", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"mem_la_wdata", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_insn", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_rs1", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"pcpi_rs2", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"eoi", "Input port", {"SST::VerilatorSST::PortEvent"}},
-      {"trace_data", "Input port", {"SST::VerilatorSST::PortEvent"}}, 
-  */
   );
 
   // Add statistics
@@ -191,6 +171,9 @@ public:
   // Splits a parameter array into tokens of std::string values
   void splitStr(const std::string& s, char c, std::vector<std::string>& v);
 
+  uint32_t fourByteConverter( const std::vector<uint8_t>& eventData );
+
+
 private:
   // Private data
   struct RevCoProcInst {
@@ -202,6 +185,25 @@ private:
     RevRegFile* const       RegFile;
     RevMem* const           Mem;
   };
+
+  void UpdatePortState();
+
+  template<typename T>
+  bool writeToPort(std::string portName, T data);
+
+  bool ResetModel();
+
+  bool CheckInstRqst();
+
+  bool ServeInstRqst();
+
+  bool CheckDataRead();
+
+  bool ServeDataRead();
+
+  bool CheckDataWrite();
+
+  bool ServeDataWrite();
 
   /// RevCodeletCoProc: Total number of instructions retired
   Statistic<uint64_t>* num_instRetired;
@@ -216,70 +218,23 @@ private:
   std::map<std::string, PortState> PortMap;
   std::vector<PortDef> InfoVec;           // access port characteristics by ID number
 
-  // Generated links for each port
-  /*
-  SST::Link *link_clk;
-  SST::Link *link_resetn;
-  SST::Link *link_mem_ready;
-  SST::Link *link_pcpi_wr;
-  SST::Link *link_pcpi_wait;
-  SST::Link *link_pcpi_ready;
-  SST::Link *link_mem_rdata;
-  SST::Link *link_pcpi_rd;
-  SST::Link *link_irq;
-  SST::Link *link_trap;
-  SST::Link *link_mem_valid;
-  SST::Link *link_mem_instr;
-  SST::Link *link_mem_wstrb;
-  SST::Link *link_mem_la_read;
-  SST::Link *link_mem_la_write;
-  SST::Link *link_mem_la_wstrb;
-  SST::Link *link_pcpi_valid;
-  SST::Link *link_trace_valid;
-  SST::Link *link_mem_addr;
-  SST::Link *link_mem_wdata;
-  SST::Link *link_mem_la_addr;
-  SST::Link *link_mem_la_wdata;
-  SST::Link *link_pcpi_insn;
-  SST::Link *link_pcpi_rs1;
-  SST::Link *link_pcpi_rs2;
-  SST::Link *link_eoi;
-  SST::Link *link_trace_data;
-  */
-
   // Private functions
   // TODO: these need to be updated probably. Should only need handle functions 
   // for links driven by the pico, so not clk/reset/etc
-  void handle_clk(SST::Event *ev);
-  void handle_resetn(SST::Event *ev);
-  void handle_mem_ready(SST::Event *ev);
-  void handle_pcpi_wr(SST::Event *ev);
-  void handle_pcpi_wait(SST::Event *ev);
-  void handle_pcpi_ready(SST::Event *ev);
-  void handle_mem_rdata(SST::Event *ev);
-  void handle_pcpi_rd(SST::Event *ev);
-  void handle_irq(SST::Event *ev);
-  void handle_trap(SST::Event *ev);
-  void handle_mem_valid(SST::Event *ev);
-  void handle_mem_instr(SST::Event *ev);
-  void handle_mem_wstrb(SST::Event *ev);
-  void handle_mem_la_read(SST::Event *ev);
-  void handle_mem_la_write(SST::Event *ev);
-  void handle_mem_la_wstrb(SST::Event *ev);
-  void handle_pcpi_valid(SST::Event *ev);
-  void handle_trace_valid(SST::Event *ev);
-  void handle_mem_addr(SST::Event *ev);
-  void handle_mem_wdata(SST::Event *ev);
-  void handle_mem_la_addr(SST::Event *ev);
-  void handle_mem_la_wdata(SST::Event *ev);
-  void handle_pcpi_insn(SST::Event *ev);
-  void handle_pcpi_rs1(SST::Event *ev);
-  void handle_pcpi_rs2(SST::Event *ev);
-  void handle_eoi(SST::Event *ev);
-  void handle_trace_data(SST::Event *ev);
 
   // Private data
-  std::string clockPort; ///< verilator named clock port
+  std::string ClockPort; ///< verilator named clock ports
+  std::string ResetLowPort;
+  std::string ResetHighPort;
+  std::string ActiveResetPort;
+  uint8_t ActiveResetValue;
+
+  std::vector<uint32_t> CuLocalMem;
+  // set high when reset is applied; cleared when it's dropped
+  bool ModelResetting = false;
+  bool BeenReset = false; // stays high after initial reset
+  unsigned ResetLength = 3; // number of cycles to hold reset
+  unsigned ResetCounter = 0;
 
 }; // class RevCodeletCoProc
 

@@ -94,9 +94,11 @@ comp_cpu.enableAllStatistics()
 
 subcomp_codelet_intf = comp_cpu.setSubComponent("co_proc", "revcpu.RevCodeletCoProc")
 subcomp_codelet_intf.addParams({
-    "clock" : "1.0GHz",
+    "clock"     : "1.0GHz",
+    "clockPort" : "clk",
     "num_ports" : picoPorts.getNumPorts(),
-    "portMap" : picoPorts.getPortMap()
+    "portMap"   : picoPorts.getPortMap(),
+    "verbose"   : 6
     })
 
 """
