@@ -116,6 +116,7 @@ public:
     { "trcStartCycle",   "Starting tracer cycle to use with verbose=5",  "0" },
     { "splash",          "Display the splash logo",                      "0" },
     { "independentCoprocClock",  "Enables each coprocessor to register its own clock handler", "0" },
+    {"codeletCoprocessor", "Indicates whether a codelet coprocessor is present", "0"},
     )
 
   // -------------------------------------------------------
@@ -285,6 +286,8 @@ private:
   bool EnableALUFaults{};    ///< RevCPU: Enable ALU faults
 
   bool DisableCoprocClock{};  ///< RevCPU: Disables manual coproc clocking
+
+  bool CodeletCoproc{}; 
 
   TimeConverter* timeConverter{};  ///< RevCPU: SST time conversion handler
   SST::Output    output{};         ///< RevCPU: SST output handler

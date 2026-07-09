@@ -148,6 +148,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params ) : SST::Compon
   }
 
   EnableCoProc = params.find<bool>( "enableCoProc", 0 );
+  CodeletCoproc = params.find<bool>("codeletCoprocessor", 0);
   if( EnableCoProc ) {
     // Create the co-processor objects
     for( uint32_t i = 0; i < numCores; i++ ) {
@@ -156,9 +157,13 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params ) : SST::Compon
         output.fatal( CALL_INFO, -1, "Error: failed to inintialize the co-processor subcomponent\n" );
       }
       Procs[i]->SetCoProc( CoProc );
+      if ( CodeletCoproc ) {
+        Procs[i]->SetCodeletProc();
+      }
       CoProcs.push_back( std::unique_ptr<RevCoProc>( CoProc ) );
     }
   }
+
 
   // Memory dumping option(s)
   std::vector<std::string> memDumpRanges;
@@ -564,6 +569,7 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ) {
     if( Enabled[i] ) {
       if( !Procs[i]->ClockTick( currentCycle ) ) {
         if( EnableCoProc && !CoProcs.empty() ) {
+          output.verbose( CALL_INFO, 1, 0, "Tearing down coproc %" PRIu32 " at Cycle: %" PRIu64 "\n", i, currentCycle );
           CoProcs[i]->Teardown();
         }
         UpdateCoreStatistics( i );
@@ -578,7 +584,10 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ) {
     // See if any of the threads on this proc changes state
     HandleThreadStateChangesForProc( i );
 
-    if( Procs[i]->HasNoBusyHarts() ) {
+    // TODO: was going to add extra constraints here about co proc being present,
+    // but coprocs are applied to each core individually, so this should be good enough
+    if( Procs[i]->HasNoBusyHarts() && !CodeletCoproc ) {
+      output.verbose( CALL_INFO, 5, 0, "Processor %" PRIu32 " has no busy harts at Cycle: %" PRIu64 "\n", i, currentCycle );
       Enabled[i] = false;
     }
   }
@@ -628,7 +637,8 @@ bool RevCPU::clockTick( SST::Cycle_t currentCycle ) {
       std::ofstream dumpFile( Name + ".dump.final", std::ios::binary );
       Mem->DumpMemSeg( Seg, 16, dumpFile );
     }
-    primaryComponentOKToEndSim();
+    
+      primaryComponentOKToEndSim();
     output.verbose( CALL_INFO, 5, 0, "OK to end sim at cycle: %" PRIu64 "\n", static_cast<uint64_t>( currentCycle ) );
   } else {
     rtn = false;
