@@ -299,9 +299,20 @@ public:
     return it != Setter.end() ? it->second : std::function<bool( uint32_t, uint64_t )>{};
   }
 
+  void SetCodeletProc() {
+    CodeletProc = true;
+  }
+
+  void SetCodeletDone() {
+    CodeletDone = true;
+  }
+
 private:
   std::unordered_map<uint32_t, std::function<uint64_t( uint32_t )>>       Getter{};
   std::unordered_map<uint32_t, std::function<bool( uint32_t, uint64_t )>> Setter{};
+
+  bool CodeletProc           = false; // Determines if core has codelet coproc
+  bool CodeletDone           = false; // Determines if Codelet coproc is done work
 
   bool           Halted      = false;  ///< RevCore: determines if the core is halted
   bool           Stalled     = false;  ///< RevCore: determines if the core is stalled on instruction fetch
@@ -837,7 +848,9 @@ private:
 
   /// RevCore: Whether any scoreboard bits are set
   bool AnyDependency( uint32_t HartID, RevRegClass regClass = RevRegClass::RegUNKNOWN ) const {
+    printf("Checking dependency!\n"); fflush(stdout);
     const RevRegFile* regFile = GetRegFile( HartID );
+    printf("Getting RevRegFile: %p\n", regFile); fflush(stdout);
     switch( regClass ) {
     case RevRegClass::RegGPR: return regFile->RV_Scoreboard.any();
     case RevRegClass::RegFLOAT: return regFile->FP_Scoreboard.any();
@@ -864,7 +877,13 @@ private:
     }
   }
 
-  bool HartHasNoDependencies( uint32_t HartID ) const { return !AnyDependency( HartID ); }
+  bool HartHasNoDependencies( uint32_t HartID ) const { 
+    // if a codelet coproc is present and not done, that's a dependency
+    if (CodeletProc && !CodeletDone) {
+      return false;
+    }
+    return (!AnyDependency( HartID )); 
+  }
 
   ///< Removes thread from Hart and returns it
   std::unique_ptr<RevThread> PopThreadFromHart( uint32_t HartID );

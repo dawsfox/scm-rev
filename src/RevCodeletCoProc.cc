@@ -17,10 +17,11 @@ namespace SST::RevCPU {
 // RevCodeletCoProc
 // ---------------------------------------------------------------
 RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* parent)
-  : RevCoProc(id, params, parent), num_instRetired(0) {
+  : RevCoProc(id, params, parent), num_instRetired(0), parent(parent) {
 
   std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
   cycleCount = 0;
+  cycleLimit = params.find<uint64_t>("cycleLimit", 500U);
 
   registerStats();
 
@@ -278,7 +279,6 @@ bool RevCodeletCoProc::ResetModel() {
   result &= writeToPort<uint8_t>("mem_rdata", 0);
   result &= writeToPort<uint8_t>("pcpi_rd", 0);
   result &= writeToPort<uint8_t>("irq", 0);
-  // . . .
   result &= writeToPort<uint8_t>(ActiveResetPort, ActiveResetValue);
   //result &= writeToPort<uint8_t>(ClockPort, 1);
   //result &= writeToPort<uint8_t>(ClockPort, 0);
@@ -401,81 +401,80 @@ void RevCodeletCoProc::UpdatePortState() {
 }
 
 bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
-  bool error = false;
-  // TODO: need to do resetting here, since we don't have an init call 
-  // and don't want to mess with RevCPU yet to add one... Should that change?
-  if (!BeenReset && !ModelResetting) {
-    error |= ResetModel();
-  }
-  if ( ModelResetting  ) {
-    if ( ResetCounter < ResetLength ) {
-      // means model is still resetting, and should continue
-      ResetCounter++;
-    } else {
-      // Done resetting!
-      if ( ActiveResetValue ){
-        error |= !writeToPort<uint8_t>(ActiveResetPort, 0);
+  output->verbose( CALL_INFO, 1, 0, "Codelet coprocessor cycle %llu (cycle limit: %llu) ...\n", cycle, cycleLimit );
+  Done = cycle > cycleLimit;
+  if (!Done) {
+    printf("ClockTick checkpoint 1!\n"); fflush(stdout);
+    bool error = false;
+    // TODO: need to do resetting here, since we don't have an init call 
+    // and don't want to mess with RevCPU yet to add one... Should that change?
+    if (!BeenReset && !ModelResetting) {
+      error |= ResetModel();
+    }
+    printf("ClockTick checkpoint 2!\n"); fflush(stdout);
+    if ( ModelResetting  ) {
+      if ( ResetCounter < ResetLength ) {
+        // means model is still resetting, and should continue
+        ResetCounter++;
       } else {
-        error |= !writeToPort<uint8_t>(ActiveResetPort, 1);
+        // done resetting!
+        if ( ActiveResetValue ){
+          error |= !writeToPort<uint8_t>(ActiveResetPort, 0);
+        } else {
+          error |= !writeToPort<uint8_t>(ActiveResetPort, 1);
+        }
+        ModelResetting = false;
+        BeenReset = true;
       }
+    }
+    printf("ClockTick checkpoint 3!\n"); fflush(stdout);
+    if (error) {
+      output->fatal(CALL_INFO, -1,
+                    "Error in ClockTick at in Reset cycle %llu\n",
+                    cycle );
+    }
       ModelResetting = false;
-      BeenReset = true;
+    //output->verbose( CALL_INFO, 1, VerilatorSST::VerboseMasking::INIT, "Port map entry: %s\n", optList[i].c_str() );
+    error |= !writeToPort<uint8_t>(ClockPort, 0);
+    error |= !writeToPort<uint8_t>(ClockPort, 1);
+    if (error) {
+      output->fatal(CALL_INFO, -1,
+                    "Error in ClockTick after clock cycle at cycle %llu\n",
+                    cycle );
     }
-  }
-  if (error) {
-    output->fatal(CALL_INFO, -1,
-                  "Error in ClockTick at in Reset cycle %llu\n",
-                  cycle );
-  }
-    ModelResetting = false;
-  //output->verbose( CALL_INFO, 1, VerilatorSST::VerboseMasking::INIT, "Port map entry: %s\n", optList[i].c_str() );
-  error |= !writeToPort<uint8_t>(ClockPort, 0);
-  error |= !writeToPort<uint8_t>(ClockPort, 1);
-  if (error) {
-    output->fatal(CALL_INFO, -1,
-                  "Error in ClockTick after clock cycle at cycle %llu\n",
-                  cycle );
-  }
-  if (CheckInstRqst()) {
-    error = !ServeInstRqst();
-  } else if (CheckDataRead()) {
-    error = !ServeDataRead();
-  } else if (CheckDataWrite()){
-    error = !ServeDataWrite();
-  }
-  if (error) {
-    output->fatal(CALL_INFO, -1,
-                  "Error in ClockTick after inst check at cycle %llu\n",
-                  cycle );
-  }
-  
-  UpdatePortState();
-  uint8_t  curr_mem_valid = (*(PortMap["mem_valid"].second))[0];
-  // if valid is low, there is no transaction (or a prior transaction has finished) so 
-  // we need to lower mem_ready 
-  if (curr_mem_valid == 0) {
-    error |= !writeToPort<uint8_t>("mem_ready", 0);
-  }
+    printf("ClockTick checkpoint 4!\n"); fflush(stdout);
+    if (CheckInstRqst()) {
+      error = !ServeInstRqst();
+    } else if (CheckDataRead()) {
+      error = !ServeDataRead();
+    } else if (CheckDataWrite()){
+      error = !ServeDataWrite();
+    }
+    if (error) {
+      output->fatal(CALL_INFO, -1,
+                    "Error in ClockTick after inst check at cycle %llu\n",
+                    cycle );
+    }
+    
+    printf("updating port state ...\n"); fflush(stdout);
+    UpdatePortState();
+    uint8_t  curr_mem_valid = (*(PortMap["mem_valid"].second))[0];
+    // if valid is low, there is no transaction (or a prior transaction has finished) so 
+    // we need to lower mem_ready 
+    if (curr_mem_valid == 0) {
+      error |= !writeToPort<uint8_t>("mem_ready", 0);
+    }
+    printf("ClockTick checkpoint 5!\n"); fflush(stdout);
 
-  if (error) {
-    output->fatal(CALL_INFO, -1,
-                  "Error in ClockTick at cycle %llu\n",
-                  cycle );
-  }
-  /*
-  if(!InstQ.empty()){
-    uint32_t inst = InstQ.front().Inst;
-    //parent->ExternalDepClear(CreatePasskey(), InstQ.front().Feature->GetHartToExecID(), 7, false);
-    num_instRetired->addData(1);
-    parent->ExternalStallHart(CreatePasskey(), 0);
-    InstQ.pop();
-    std::cout << "CoProcessor to execute instruction: " << std::hex << inst << std::endl;
-    cycleCount = cycle;
-  }
-    if((cycle - cycleCount) > 500){
-      parent->ExternalReleaseHart(CreatePasskey(), 0);
+    if (error) {
+      output->fatal(CALL_INFO, -1,
+                    "Error in ClockTick at cycle %llu\n",
+                    cycle );
     }
-  */
+
+  } else {
+    parent->SetCodeletDone();
+  }
   return true;
 }
 

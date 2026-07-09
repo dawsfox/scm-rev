@@ -157,10 +157,15 @@ public:
   /// RevCodeletCoProc: Called when the attached RevProc completes simulation. Could be used to
   ///                   also signal to SST that the co-processor is done if ClockTick is registered
   ///                   to SSTCore vs. being driven by RevCPU
-  bool Teardown() final { return Reset(); }
+  bool Teardown() final { 
+    printf("CodeletCoProc teardown occurring\n");
+    fflush(stdout);
+    return Reset(); 
+  }
 
-  /// RevCodeletCoProc: Returns true if instruction queue is empty
-  bool IsDone() final { return InstQ.empty();}
+  /// RevCodeletCoProc: We don't use instruction queue, so 
+  /// this is based on upper cycle limit -- later we can adjust
+  bool IsDone() final { return Done;}
 
   void InitPortMap( const SST::Params& params );
 
@@ -172,6 +177,7 @@ public:
   void splitStr(const std::string& s, char c, std::vector<std::string>& v);
 
   uint32_t fourByteConverter( const std::vector<uint8_t>& eventData );
+
 
 
 private:
@@ -212,6 +218,8 @@ private:
   std::queue<RevCoProcInst> InstQ;
 
   SST::Cycle_t cycleCount;
+  uint64_t cycleLimit;
+  bool Done;
 
   SST::Link** Links;
   //std::map<std::string, PortDef> PortMap; // access port characteristics based on name
@@ -228,6 +236,8 @@ private:
   std::string ResetHighPort;
   std::string ActiveResetPort;
   uint8_t ActiveResetValue;
+  RevCore* parent;
+
 
   std::vector<uint32_t> CuLocalMem;
   // set high when reset is applied; cleared when it's dropped
