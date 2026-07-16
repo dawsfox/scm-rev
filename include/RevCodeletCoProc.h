@@ -241,10 +241,10 @@ private:
 
   std::vector<uint32_t> CuLocalMem;
   // set high when reset is applied; cleared when it's dropped
-  bool ModelResetting = false;
-  bool BeenReset = false; // stays high after initial reset
-  unsigned ResetLength = 3; // number of cycles to hold reset
-  unsigned ResetCounter = 0;
+  bool ModelResetting;
+  bool BeenReset; // stays high after initial reset
+  int ResetLength; // number of cycles to hold reset
+  int ResetCounter;
 
 }; // class RevCodeletCoProc
 

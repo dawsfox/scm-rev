@@ -26,7 +26,7 @@ RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* pa
   registerStats();
 
   ClockPort     = params.find<std::string>("clockPort", "clock");
-  ResetLowPort  = params.find<std::string>("resetLowPort", "reset_l");
+  ResetLowPort  = params.find<std::string>("resetLowPort", "resetn");
   ResetHighPort = params.find<std::string>("resetHighPort", "NONE");
 
   const int NumPorts = params.find<int>( "num_ports", 0 );
@@ -39,6 +39,11 @@ RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* pa
   output->verbose( CALL_INFO, 1, 0, "Constructing Codelet coprocessor...\n" );
   printf("constructing Codelet coproc\n");
   fflush(stdout);
+  
+  ModelResetting = false;
+  BeenReset = false;
+  ResetLength = 8;
+  ResetCounter = 0;
 
   InitLinkConfig( params );
   InitPortMap( params );
@@ -196,6 +201,7 @@ void RevCodeletCoProc::RecvPortEvent( SST::Event* ev, unsigned portId ) {
     // event from mem_addr
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_addr' PortEvent is not a WRITE");
       *(PortMap["mem_addr"].second) = fromPort->getPacket();
+      printf("updating mem_addr port state: %p, size: %lu\n", PortMap["mem_addr"].second, PortMap["mem_addr"].second->size()); fflush(stdout);
     } else if (portId == 19) {
     // event from mem_wdata
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_wdata' PortEvent is not a WRITE");
@@ -261,9 +267,11 @@ bool RevCodeletCoProc::Reset(){
 bool RevCodeletCoProc::ResetModel() {
   bool result;
   if (ResetHighPort == "NONE" && ResetLowPort != "NONE") {
+    output->verbose( CALL_INFO, 1, 0, "Using ResetLowPort: %s\n", ResetLowPort.c_str() );
     ActiveResetPort = ResetLowPort;
     ActiveResetValue = 0;
   } else if (ResetLowPort == "NONE") {
+    output->verbose( CALL_INFO, 1, 0, "Using ResetHighPort: %s\n", ResetHighPort.c_str() );
     ActiveResetPort = ResetHighPort; 
     ActiveResetValue = 1;
   } else {
@@ -285,16 +293,16 @@ bool RevCodeletCoProc::ResetModel() {
   //result &= writeToPort<uint8_t>(ClockPort, 1);
   // Since we call it in the clockTick function, let's rely on that 
   // to flip the clock for a couple cycles instead
-  ModelResetting = result;
   output->verbose( CALL_INFO, 1, 0, "Verilated model resetting . . .\n" );
   return result;
 }
 
-uint32_t fourByteConverter( const std::vector<uint8_t>& eventData ) {
-  uint32_t tmp = eventData[0];
-  tmp +=  (static_cast<uint32_t>(eventData[1]) << 8);
-  tmp +=  (static_cast<uint32_t>(eventData[2]) << 16);
-  tmp +=  (static_cast<uint32_t>(eventData[3]) << 24);
+uint32_t RevCodeletCoProc::fourByteConverter( const std::vector<uint8_t>& eventData ) {
+  uint32_t tmp = eventData.at(0);
+  printf("in fourbyte converter\n"); fflush(stdout);
+  tmp +=  (static_cast<uint32_t>(eventData.at(1)) << 8);
+  tmp +=  (static_cast<uint32_t>(eventData.at(2)) << 16);
+  tmp +=  (static_cast<uint32_t>(eventData.at(3)) << 24);
   return tmp;
 }
 
@@ -309,6 +317,7 @@ bool RevCodeletCoProc::CheckInstRqst(){
 
 // Serves Cu instruction request
 bool RevCodeletCoProc::ServeInstRqst(){
+  output->verbose( CALL_INFO, 1, 0, "Attempting to serve pico instruction read\n");
   // divide by 4 because the addresses are byte addresses
   uint32_t curr_mem_addr  = fourByteConverter(*(PortMap[ "mem_addr"].second)) / 4;
   if (curr_mem_addr > 3) {
@@ -328,7 +337,8 @@ bool RevCodeletCoProc::CheckDataRead() {
 }
 
 bool RevCodeletCoProc::ServeDataRead() {
-  uint32_t curr_mem_addr  = fourByteConverter(*(PortMap[ "mem_addr"].second)) / 4;
+  output->verbose( CALL_INFO, 1, 0, "Attempting to serve pico data read\n");
+  uint32_t curr_mem_addr  = fourByteConverter((*PortMap[ "mem_addr"].second)) / 4;
   // TODO: do we implement this with a fake local data memory, or is it worth it 
   // to hook up to call to RevMem here?
   // Problem: don't have RevMem reference: leave it for later. Basic testbench
@@ -351,11 +361,12 @@ bool RevCodeletCoProc::CheckDataWrite() {
 
 bool RevCodeletCoProc::ServeDataWrite() {
   // no RevMem pointer -- "write" it somewhere local
-  uint32_t curr_mem_addr  = fourByteConverter(*(PortMap[ "mem_addr"].second)) / 4;
+  output->verbose( CALL_INFO, 1, 0, "Attempting to serve pico data write\n");
+  uint32_t curr_mem_addr  = fourByteConverter((*PortMap[ "mem_addr"].second)) / 4;
   if (curr_mem_addr == 255) {
     // TODO: with setting mem_ready here, we need to probably make sure to lower it 
     // in the clock tick function if valid went low
-    CuLocalMem[7] = fourByteConverter(*(PortMap["mem_wdata"].second));
+    CuLocalMem[7] = fourByteConverter((*PortMap["mem_wdata"].second));
     return writeToPort<uint8_t>("mem_ready", 1);
   }   
   return false;
@@ -390,6 +401,7 @@ bool RevCodeletCoProc::writeToPort(std::string portName, T data) {
 // send read requests to all readable ports; the handler will update 
 // the PortStates with the returned values
 void RevCodeletCoProc::UpdatePortState() {
+  output->verbose( CALL_INFO, 1, 0, "Attempting to update port state array\n" );
   for ( const auto &portMapEntry : PortMap ) {
     PortState currState = portMapEntry.second; // port state and def for this port
     PortDef thisDef = currState.first; // port def info (is it readable?)
@@ -406,34 +418,38 @@ bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
   if (!Done) {
     printf("ClockTick checkpoint 1!\n"); fflush(stdout);
     bool error = false;
-    // TODO: need to do resetting here, since we don't have an init call 
-    // and don't want to mess with RevCPU yet to add one... Should that change?
-    if (!BeenReset && !ModelResetting) {
-      error |= ResetModel();
-    }
-    printf("ClockTick checkpoint 2!\n"); fflush(stdout);
+    // This has to go before reset is actually triggered, so it doesn't immediately
+    // skip a cycle of the reset counter after reset is triggered
+    printf("BeenReset: %s; ModelResetting: %s\n", BeenReset ? "true" : "false", ModelResetting ? "true" : "false"); fflush(stdout);
     if ( ModelResetting  ) {
       if ( ResetCounter < ResetLength ) {
         // means model is still resetting, and should continue
         ResetCounter++;
       } else {
+        printf("Finishing resetting!\n"); fflush(stdout);
         // done resetting!
         if ( ActiveResetValue ){
           error |= !writeToPort<uint8_t>(ActiveResetPort, 0);
         } else {
           error |= !writeToPort<uint8_t>(ActiveResetPort, 1);
         }
-        ModelResetting = false;
         BeenReset = true;
+        ModelResetting = false;
       }
     }
+    printf("BeenReset: %s; ModelResetting: %s\n", BeenReset ? "true" : "false", ModelResetting ? "true" : "false"); fflush(stdout);
+    if (!BeenReset && !ModelResetting) {
+      error |= ResetModel();
+      ModelResetting = true;
+      printf("BeenReset: %s; ModelResetting: %s\n", BeenReset ? "true" : "false", ModelResetting ? "true" : "false"); fflush(stdout);
+    }
+    printf("ClockTick checkpoint 2!\n"); fflush(stdout);
     printf("ClockTick checkpoint 3!\n"); fflush(stdout);
     if (error) {
       output->fatal(CALL_INFO, -1,
-                    "Error in ClockTick at in Reset cycle %llu\n",
+                    "Error in ClockTick after Reset at cycle %llu\n",
                     cycle );
     }
-      ModelResetting = false;
     //output->verbose( CALL_INFO, 1, VerilatorSST::VerboseMasking::INIT, "Port map entry: %s\n", optList[i].c_str() );
     error |= !writeToPort<uint8_t>(ClockPort, 0);
     error |= !writeToPort<uint8_t>(ClockPort, 1);
@@ -444,11 +460,11 @@ bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
     }
     printf("ClockTick checkpoint 4!\n"); fflush(stdout);
     if (CheckInstRqst()) {
-      error = !ServeInstRqst();
+      error |= !ServeInstRqst();
     } else if (CheckDataRead()) {
-      error = !ServeDataRead();
+      error |= !ServeDataRead();
     } else if (CheckDataWrite()){
-      error = !ServeDataWrite();
+      error |= !ServeDataWrite();
     }
     if (error) {
       output->fatal(CALL_INFO, -1,
@@ -456,7 +472,6 @@ bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
                     cycle );
     }
     
-    printf("updating port state ...\n"); fflush(stdout);
     UpdatePortState();
     uint8_t  curr_mem_valid = (*(PortMap["mem_valid"].second))[0];
     // if valid is low, there is no transaction (or a prior transaction has finished) so 
