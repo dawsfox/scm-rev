@@ -134,11 +134,8 @@ model.addParams({
 Links = [ ]
 # connect each verilator subcomponent port with a port on the codelet(coproc) interface
 for i in range(picoPorts.getNumPorts()):
-    #Links.append( sst.Link( f"link{i}" ) )
     Links.append( sst.Link( f"pico_{picoPorts.getPortName( i )}" ) )
-    #Links[i].connect( ( model, picoPorts.getPortName( i ), "0ps" ), ( subcomp_codelet_intf, picoPorts.getPortName( i ), "0ps" ) )
-    # Changed RevCodeletCoProc to accept port# instead of named ports
-    Links[i].connect( ( model, picoPorts.getPortName( i ), "0ps" ), ( subcomp_codelet_intf, f"port{i}", "0ps" ) )
+    Links[i].connect( ( model, picoPorts.getPortName( i ), "1ps" ), ( subcomp_codelet_intf, f"port{i}", "0ps" ) )
 
 
 sst.setStatisticOutput("sst.statOutputCSV")
