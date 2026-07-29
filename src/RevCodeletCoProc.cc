@@ -10,6 +10,13 @@
 
 #include "RevCodeletCoProc.h"
 
+#define PORT_PRINT_DEBUG( port_name )        \
+    printf("packet received for port " #port_name "; data:\t"); \
+    for (size_t i=0; i<fromPort->getPacket().size(); i++) { \
+      printf("%x\t", fromPort->getPacket().at(i)); \
+    } \
+    printf("\n"); fflush(stdout);
+
 namespace SST::RevCPU {
 
 
@@ -163,74 +170,92 @@ void RevCodeletCoProc::RecvPortEvent( SST::Event* ev, unsigned portId ) {
       // trap and the rest are READ_PORTs
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'trap' PortEvent is not a WRITE");
       *(PortMap["trap"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( trap )
     } else if (portId == 10) {
     // event from mem_valid
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'memvalid' PortEvent is not a WRITE");
       *(PortMap["mem_valid"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_valid )
     } else if (portId == 11) {
     // event from mem_instr
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_instr' PortEvent is not a WRITE");
       *(PortMap["mem_instr"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_instr )
     } else if (portId == 12) {
     // event from mem_wstrb
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_wstrb' PortEvent is not a WRITE");
       *(PortMap["mem_wstrb"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_wstrb )
     } else if (portId == 13) {
     // event from mem_la_read
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_la_read' PortEvent is not a WRITE");
       *(PortMap["mem_la_read"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_la_read )
     } else if (portId == 14) {
     // event from mem_la_write
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_la_write' PortEvent is not a WRITE");
       *(PortMap["mem_la_write"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_la_read )
     } else if (portId == 15) {
     // event from mem_la_wstrb
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_la_wstrb' PortEvent is not a WRITE");
       *(PortMap["mem_la_wstrb"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_la_wstrb )
     } else if (portId == 16) {
     // event from pcpi_valid
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'pcpi_valid' PortEvent is not a WRITE");
       *(PortMap["pcpi_valid"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( pcpi_valid )
     } else if (portId == 17) {
     // event from trace_valid
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'trace_valid' PortEvent is not a WRITE");
       *(PortMap["trace_valid"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( trace_valid )
     } else if (portId == 18) {
     // event from mem_addr
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_addr' PortEvent is not a WRITE");
       *(PortMap["mem_addr"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_addr )
     } else if (portId == 19) {
     // event from mem_wdata
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_wdata' PortEvent is not a WRITE");
       *(PortMap["mem_wdata"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_wdata )
     } else if (portId == 20) {
     // event from mem_la_addr
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_la_addr' PortEvent is not a WRITE");
       *(PortMap["mem_la_addr"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_la_addr )
     } else if (portId == 21) {
     // event from mem_la_wdata
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'mem_la_wdata' PortEvent is not a WRITE");
       *(PortMap["mem_la_wdata"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( mem_la_wdata )
     } else if (portId == 22) {
     // event from pcpi_insn
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'pcpi_insn' PortEvent is not a WRITE");
       *(PortMap["pcpi_insn"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( pcpi_insn )
     } else if (portId == 23) {
     // event from pcpi_rs1
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'pcpi_rs1' PortEvent is not a WRITE");
       *(PortMap["pcpi_rs1"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( pcpi_rs1 )
     } else if (portId == 24) {
     // event from pcpi_rs2
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'pcpi_rs2' PortEvent is not a WRITE");
       *(PortMap["pcpi_rs2"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( pcpi_rs2 )
     } else if (portId == 25) {
     // event from eoi
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'eoi' PortEvent is not a WRITE");
       *(PortMap["eoi"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( eoi )
     } else if (portId == 26) {
     // event from trace_data
       assert(fromPort->getAction() == VerilatorSST::PortEventAction::WRITE && "Error: 'trace_data' PortEvent is not a WRITE");
       *(PortMap["trace_data"].second) = fromPort->getPacket();
+      PORT_PRINT_DEBUG( trace_data )
     } else {
       output->fatal( CALL_INFO, -1, "Error: portId not recognized\n" );
     }
@@ -364,8 +389,8 @@ bool RevCodeletCoProc::ServeDataWrite() {
   if (curr_mem_addr == 255) {
     uint32_t tmp = fourByteConverter((*PortMap["mem_wdata"].second));
     printf("serving data write: 0x%x at 0x%x\n", tmp, curr_mem_addr); fflush(stdout);
-    CuLocalMem[7] = tmp;
-    //CuLocalMem[7] = fourByteConverter((*PortMap["mem_wdata"].second));
+    CuLocalMem[6] = tmp;
+    //CuLocalMem[6] = fourByteConverter((*PortMap["mem_wdata"].second));
     return writeToPort<uint8_t>("mem_ready", 1);
   }   
   printf("could not serve data write, addr is invalid: 0x%x\n", curr_mem_addr); fflush(stdout);
@@ -444,12 +469,32 @@ bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
                     "Error in ClockTick after Reset at cycle %llu\n",
                     cycle );
     }
-    if (CheckInstRqst()) {
-      error |= !ServeInstRqst();
-    } else if (CheckDataRead()) {
-      error |= !ServeDataRead();
-    } else if (CheckDataWrite()){
-      error |= !ServeDataWrite();
+
+    //uint8_t  curr_mem_valid = (*(PortMap["mem_valid"].second))[0];
+    // if valid is low, there is no transaction (or a prior transaction has finished) so 
+    // we need to lower mem_ready 
+    //printf("curr_mem_valid: %d\n", curr_mem_valid); fflush(stdout);
+    //if (curr_mem_valid == 0) {
+    if (MemReqServiced) {
+      error |= !writeToPort<uint8_t>("mem_ready", 0);
+    }
+    
+    // if mem_valid has gone low, the transaction is over
+    if ((*(PortMap["mem_valid"].second)).at(0) == 0) {
+      MemReqServiced = false;
+    }
+
+    if (!MemReqServiced) {
+      if (CheckInstRqst()) {
+        error |= !ServeInstRqst();
+        MemReqServiced = true;
+      } else if (CheckDataRead()) {
+        error |= !ServeDataRead();
+        MemReqServiced = true;
+      } else if (CheckDataWrite()){
+        error |= !ServeDataWrite();
+        MemReqServiced = true;
+      }
     }
     if (error) {
       output->fatal(CALL_INFO, -1,
@@ -457,21 +502,14 @@ bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
                     cycle );
     }
     
-    error |= !writeToPort<uint8_t>(ClockPort, 0);
     error |= !writeToPort<uint8_t>(ClockPort, 1);
+    error |= !writeToPort<uint8_t>(ClockPort, 0);
     if (error) {
       output->fatal(CALL_INFO, -1,
                     "Error in ClockTick after clock cycle at cycle %llu\n",
                     cycle );
     }
     UpdatePortState();
-    uint8_t  curr_mem_valid = (*(PortMap["mem_valid"].second))[0];
-    // if valid is low, there is no transaction (or a prior transaction has finished) so 
-    // we need to lower mem_ready 
-    printf("curr_mem_valid: %d\n", curr_mem_valid); fflush(stdout);
-    if (curr_mem_valid == 0) {
-      error |= !writeToPort<uint8_t>("mem_ready", 0);
-    }
 
     if (error) {
       output->fatal(CALL_INFO, -1,

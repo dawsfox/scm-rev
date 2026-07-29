@@ -245,6 +245,7 @@ private:
   bool BeenReset; // stays high after initial reset
   int ResetLength; // number of cycles to hold reset
   int ResetCounter;
+  bool MemReqServiced = false;
 
 }; // class RevCodeletCoProc
 
