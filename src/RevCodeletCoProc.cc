@@ -437,44 +437,40 @@ void RevCodeletCoProc::UpdatePortState() {
   }
 }
 
+bool RevCodeletCoProc::ManageModelReset() {
+  bool error = false;
+  // This has to go before reset is actually triggered, so it doesn't immediately
+  // skip a cycle of the reset counter after reset is triggered
+  if ( ModelResetting  ) {
+    if ( ResetCounter < ResetLength ) {
+      // means model is still resetting, and should continue
+      ResetCounter++;
+    } else {
+      printf("Finishing resetting!\n"); fflush(stdout);
+      // done resetting!
+      if ( ActiveResetValue ){
+        error |= !writeToPort<uint8_t>(ActiveResetPort, 0);
+      } else {
+        error |= !writeToPort<uint8_t>(ActiveResetPort, 1);
+      }
+      BeenReset = true;
+      ModelResetting = false;
+    }
+  }
+  if (!BeenReset && !ModelResetting) {
+    error |= ResetModel();
+    ModelResetting = true;
+  }
+  return !error;
+}
+
 bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
   output->verbose( CALL_INFO, 1, 0, "Codelet coprocessor cycle %llu (cycle limit: %llu) ...\n", cycle, cycleLimit );
   Done = cycle > cycleLimit;
   if (!Done) {
     bool error = false;
-    // This has to go before reset is actually triggered, so it doesn't immediately
-    // skip a cycle of the reset counter after reset is triggered
-    if ( ModelResetting  ) {
-      if ( ResetCounter < ResetLength ) {
-        // means model is still resetting, and should continue
-        ResetCounter++;
-      } else {
-        printf("Finishing resetting!\n"); fflush(stdout);
-        // done resetting!
-        if ( ActiveResetValue ){
-          error |= !writeToPort<uint8_t>(ActiveResetPort, 0);
-        } else {
-          error |= !writeToPort<uint8_t>(ActiveResetPort, 1);
-        }
-        BeenReset = true;
-        ModelResetting = false;
-      }
-    }
-    if (!BeenReset && !ModelResetting) {
-      error |= ResetModel();
-      ModelResetting = true;
-    }
-    if (error) {
-      output->fatal(CALL_INFO, -1,
-                    "Error in ClockTick after Reset at cycle %llu\n",
-                    cycle );
-    }
+    error |= !ManageModelReset();
 
-    //uint8_t  curr_mem_valid = (*(PortMap["mem_valid"].second))[0];
-    // if valid is low, there is no transaction (or a prior transaction has finished) so 
-    // we need to lower mem_ready 
-    //printf("curr_mem_valid: %d\n", curr_mem_valid); fflush(stdout);
-    //if (curr_mem_valid == 0) {
     if (MemReqServiced) {
       error |= !writeToPort<uint8_t>("mem_ready", 0);
     }
@@ -496,19 +492,9 @@ bool RevCodeletCoProc::ClockTick(SST::Cycle_t cycle){
         MemReqServiced = true;
       }
     }
-    if (error) {
-      output->fatal(CALL_INFO, -1,
-                    "Error in ClockTick after inst check at cycle %llu\n",
-                    cycle );
-    }
-    
+
     error |= !writeToPort<uint8_t>(ClockPort, 1);
     error |= !writeToPort<uint8_t>(ClockPort, 0);
-    if (error) {
-      output->fatal(CALL_INFO, -1,
-                    "Error in ClockTick after clock cycle at cycle %llu\n",
-                    cycle );
-    }
     UpdatePortState();
 
     if (error) {

@@ -197,18 +197,14 @@ private:
   template<typename T>
   bool writeToPort(std::string portName, T data);
 
+  bool ManageModelReset();
+
   bool ResetModel();
-
   bool CheckInstRqst();
-
   bool ServeInstRqst();
-
   bool CheckDataRead();
-
   bool ServeDataRead();
-
   bool CheckDataWrite();
-
   bool ServeDataWrite();
 
   /// RevCodeletCoProc: Total number of instructions retired
