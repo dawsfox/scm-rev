@@ -1,0 +1,269 @@
+<svg viewBox="0 0 1100 720" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <!-- Arrows -->
+    <marker id="aR" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#58a6ff"/>
+    </marker>
+    <marker id="aL" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
+      <polygon points="8 0,0 3,8 6" fill="#3fb950"/>
+    </marker>
+    <marker id="aBi" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#d29922"/>
+    </marker>
+    <marker id="aBiL" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
+      <polygon points="8 0,0 3,8 6" fill="#d29922"/>
+    </marker>
+    <marker id="aGray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#8b949e"/>
+    </marker>
+    <marker id="aPurp" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#bc8cff"/>
+    </marker>
+
+    <!-- gradients -->
+    <linearGradient id="gCPU" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c2a3a"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="gVer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2200"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="gSST" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ─── Background ─── -->
+  <rect width="1100" height="720" fill="#0d1117"/>
+
+  <!-- ─── Title ─── -->
+  <text x="550" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#e6edf3">scm-rev — Simulated Architecture Block Diagram</text>
+  <text x="550" y="54" text-anchor="middle" font-size="11" fill="#484f58">Inferred from source: branch scm_impl · dawsfox/scm-rev</text>
+
+  <!-- ══════════════════════════════════════════════
+       LEFT COLUMN  —  SST::RevCPU component
+  ══════════════════════════════════════════════ -->
+  <!-- Outer RevCPU boundary -->
+  <rect x="20" y="70" width="510" height="620" rx="10" fill="url(#gCPU)" stroke="#58a6ff" stroke-width="1.8"/>
+  <text x="275" y="95" text-anchor="middle" font-size="14" font-weight="700" fill="#58a6ff">revcpu.RevCPU</text>
+  <text x="275" y="111" text-anchor="middle" font-size="10" fill="#8b949e">SST::Component  ·  1 GHz  ·  1 GB mem  ·  RV64GC</text>
+
+  <!-- ── RevMem ── -->
+  <rect x="40" y="124" width="220" height="70" rx="7" fill="#161b22" stroke="#8b949e" stroke-width="1.2"/>
+  <text x="150" y="148" text-anchor="middle" font-size="12" font-weight="600" fill="#e6edf3">RevMem</text>
+  <text x="150" y="165" text-anchor="middle" font-size="10" fill="#8b949e">1 GB flat addr space</text>
+  <text x="150" y="180" text-anchor="middle" font-size="10" fill="#8b949e">Load/Store + memCost 1–10 cy</text>
+
+  <!-- ── RevLoader ── -->
+  <rect x="40" y="208" width="220" height="56" rx="7" fill="#161b22" stroke="#8b949e" stroke-width="1.2"/>
+  <text x="150" y="231" text-anchor="middle" font-size="12" font-weight="600" fill="#e6edf3">RevLoader</text>
+  <text x="150" y="249" text-anchor="middle" font-size="10" fill="#8b949e">ELF loader → verilator_sst.exe</text>
+
+  <!-- ── RevCore (pipeline) ── -->
+  <rect x="40" y="278" width="470" height="240" rx="8" fill="#0d1117" stroke="#3fb950" stroke-width="1.4"/>
+  <text x="275" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#3fb950">RevCore  (Core 0 · RV64GC pipeline)</text>
+
+  <!-- pipeline stages inside RevCore -->
+  <g font-size="10" text-anchor="middle" font-weight="600">
+    <!-- Fetch -->
+    <rect x="58" y="310" width="80" height="40" rx="5" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+    <text x="98" y="334" fill="#3fb950">Fetch</text>
+    <!-- Decode -->
+    <rect x="150" y="310" width="80" height="40" rx="5" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+    <text x="190" y="334" fill="#3fb950">Decode</text>
+    <!-- Execute -->
+    <rect x="242" y="310" width="80" height="40" rx="5" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+    <text x="282" y="334" fill="#3fb950">Execute</text>
+    <!-- Mem -->
+    <rect x="334" y="310" width="80" height="40" rx="5" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+    <text x="374" y="334" fill="#3fb950">Memory</text>
+    <!-- WB -->
+    <rect x="426" y="310" width="66" height="40" rx="5" fill="#161b22" stroke="#3fb950" stroke-width="1"/>
+    <text x="459" y="334" fill="#3fb950">WB</text>
+
+    <!-- pipeline arrows -->
+    <line x1="138" y1="330" x2="150" y2="330" stroke="#3fb950" stroke-width="1.2" marker-end="url(#aR)"/>
+    <line x1="230" y1="330" x2="242" y2="330" stroke="#3fb950" stroke-width="1.2" marker-end="url(#aR)"/>
+    <line x1="322" y1="330" x2="334" y2="330" stroke="#3fb950" stroke-width="1.2" marker-end="url(#aR)"/>
+    <line x1="414" y1="330" x2="426" y2="330" stroke="#3fb950" stroke-width="1.2" marker-end="url(#aR)"/>
+  </g>
+
+  <!-- RegFile -->
+  <rect x="58" y="364" width="180" height="44" rx="5" fill="#161b22" stroke="#8b949e" stroke-width="1"/>
+  <text x="148" y="381" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">RevRegFile</text>
+  <text x="148" y="396" text-anchor="middle" font-size="10" fill="#8b949e">x0-x31 · f0-f31 · PC · CSRs</text>
+
+  <!-- RevFeature -->
+  <rect x="252" y="364" width="120" height="44" rx="5" fill="#161b22" stroke="#8b949e" stroke-width="1"/>
+  <text x="312" y="381" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">RevFeature</text>
+  <text x="312" y="396" text-anchor="middle" font-size="10" fill="#8b949e">ISA config flags</text>
+
+  <!-- Hart stall/release -->
+  <rect x="58" y="420" width="420" height="36" rx="5" fill="#1e1b2e" stroke="#bc8cff" stroke-width="1"/>
+  <text x="268" y="443" text-anchor="middle" font-size="10" fill="#bc8cff">Hart stall / release  (ExternalStallHart / ExternalReleaseHart)</text>
+
+  <!-- InstQ note -->
+  <rect x="58" y="468" width="420" height="36" rx="5" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="268" y="491" text-anchor="middle" font-size="10" fill="#8b949e">Custom instr detected → IssueInst() → InstQ in CoProc</text>
+
+  <!-- ── RevCodeletCoProc subcomponent ── -->
+  <rect x="40" y="530" width="470" height="140" rx="8" fill="#1e1b2e" stroke="#bc8cff" stroke-width="1.8"/>
+  <rect x="40" y="530" width="470" height="30" rx="8" fill="#2a1f40"/>
+  <rect x="40" y="548" width="470" height="12" fill="#2a1f40"/>
+  <text x="275" y="550" text-anchor="middle" font-size="12" font-weight="700" fill="#bc8cff">RevCodeletCoProc  [SST::SubComponent  ·  slot: co_proc]</text>
+
+  <!-- inner details -->
+  <rect x="58" y="570" width="135" height="50" rx="4" fill="#0d1117" stroke="#30363d"/>
+  <text x="126" y="589" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">InstQ</text>
+  <text x="126" y="604" text-anchor="middle" font-size="9" fill="#8b949e">instruction queue</text>
+  <text x="126" y="616" text-anchor="middle" font-size="9" fill="#8b949e">RevCoProcInst structs</text>
+
+  <rect x="205" y="570" width="135" height="50" rx="4" fill="#0d1117" stroke="#30363d"/>
+  <text x="273" y="589" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Links[ ]</text>
+  <text x="273" y="604" text-anchor="middle" font-size="9" fill="#8b949e">port0 … port26</text>
+  <text x="273" y="616" text-anchor="middle" font-size="9" fill="#8b949e">SST::Link*</text>
+
+  <rect x="352" y="570" width="140" height="50" rx="4" fill="#0d1117" stroke="#30363d"/>
+  <text x="422" y="589" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">PortMap / InfoVec</text>
+  <text x="422" y="604" text-anchor="middle" font-size="9" fill="#8b949e">name→PortDef</text>
+  <text x="422" y="616" text-anchor="middle" font-size="9" fill="#8b949e">id→PortDef</text>
+
+  <text x="275" y="655" text-anchor="middle" font-size="9" fill="#ff7b72">RecvPortEvent() stubs · ClockTick() stalls hart for 500 cy (placeholder)</text>
+
+  <!-- IssueInst arrow: RevCore → RevCodeletCoProc -->
+  <line x1="200" y1="514" x2="200" y2="530" stroke="#bc8cff" stroke-width="1.4" marker-end="url(#aPurp)"/>
+  <text x="208" y="525" font-size="9" fill="#bc8cff">IssueInst()</text>
+
+  <!-- ══════════════════════════════════════════════
+       CENTER  —  SST Link bus
+  ══════════════════════════════════════════════ -->
+  <rect x="542" y="530" width="20" height="140" rx="4" fill="#2a2200" stroke="#d29922" stroke-width="1.2"/>
+  <text x="552" y="606" text-anchor="middle" font-size="9" fill="#d29922" writing-mode="tb" transform="rotate(90,552,606)">27 SST::Links  ·  PortEvent</text>
+
+  <!-- bidirectional arrows between CoProc and Link bus -->
+  <line x1="510" y1="595" x2="542" y2="595" stroke="#d29922" stroke-width="1.4" marker-end="url(#aBi)"/>
+  <line x1="542" y1="610" x2="510" y2="610" stroke="#d29922" stroke-width="1.4" marker-end="url(#aBiL)"/>
+
+  <!-- bidirectional arrows between Link bus and Pico -->
+  <line x1="562" y1="595" x2="590" y2="595" stroke="#d29922" stroke-width="1.4" marker-end="url(#aBi)"/>
+  <line x1="590" y1="610" x2="562" y2="610" stroke="#d29922" stroke-width="1.4" marker-end="url(#aBiL)"/>
+
+  <!-- ══════════════════════════════════════════════
+       RIGHT COLUMN  —  VerilatorComponent
+  ══════════════════════════════════════════════ -->
+  <rect x="580" y="70" width="500" height="620" rx="10" fill="url(#gVer)" stroke="#d29922" stroke-width="1.8"/>
+  <text x="830" y="95" text-anchor="middle" font-size="14" font-weight="700" fill="#d29922">verilatorcomponent.VerilatorComponent</text>
+  <text x="830" y="111" text-anchor="middle" font-size="10" fill="#8b949e">SST::Component  ·  thin shell  ·  drives model subcomponent</text>
+
+  <!-- ── VerilatorSSTpicorv32 subcomponent ── -->
+  <rect x="598" y="124" width="464" height="390" rx="8" fill="#1a1600" stroke="#d29922" stroke-width="1.6"/>
+  <rect x="598" y="124" width="464" height="30" rx="8" fill="#2a2200"/>
+  <rect x="598" y="142" width="464" height="12" fill="#2a2200"/>
+  <text x="830" y="143" text-anchor="middle" font-size="12" font-weight="700" fill="#d29922">VerilatorSSTpicorv32  [SST::SubComponent  ·  slot: model]</text>
+  <text x="830" y="162" text-anchor="middle" font-size="10" fill="#8b949e">2 GHz  ·  useVPI=false  ·  VerilatorSSTBase</text>
+
+  <!-- Port table — inputs -->
+  <rect x="614" y="174" width="200" height="150" rx="5" fill="#0d1117" stroke="#58a6ff" stroke-width="1"/>
+  <text x="714" y="192" text-anchor="middle" font-size="10" font-weight="600" fill="#58a6ff">INPUT ports  (CoProc → Pico)</text>
+  <g font-size="9" fill="#8b949e">
+    <text x="624" y="208">clk  (1b)</text>
+    <text x="624" y="221">resetn  (1b)</text>
+    <text x="624" y="234">mem_ready  (1b)</text>
+    <text x="624" y="247">pcpi_wr / wait / ready  (1b ea)</text>
+    <text x="624" y="260">mem_rdata  (32b)</text>
+    <text x="624" y="273">pcpi_rd  (32b)</text>
+    <text x="624" y="286">irq  (32b)</text>
+    <text x="624" y="300">→ 9 signals  (port0–port8)</text>
+  </g>
+
+  <!-- Port table — outputs -->
+  <rect x="826" y="174" width="220" height="150" rx="5" fill="#0d1117" stroke="#3fb950" stroke-width="1"/>
+  <text x="936" y="192" text-anchor="middle" font-size="10" font-weight="600" fill="#3fb950">OUTPUT ports  (Pico → CoProc)</text>
+  <g font-size="9" fill="#8b949e">
+    <text x="836" y="208">trap  (1b)</text>
+    <text x="836" y="221">mem_valid / instr / wstrb</text>
+    <text x="836" y="234">mem_la_read / write / wstrb</text>
+    <text x="836" y="247">pcpi_valid  ·  trace_valid</text>
+    <text x="836" y="260">mem_addr / wdata  (32b)</text>
+    <text x="836" y="273">mem_la_addr / la_wdata (32b)</text>
+    <text x="836" y="286">pcpi_insn / rs1 / rs2 (32b)</text>
+    <text x="836" y="300">eoi (32b)  ·  trace_data (36b)</text>
+    <text x="836" y="313">→ 18 signals  (port9–port26)</text>
+  </g>
+
+  <!-- DirectRead/Write layer -->
+  <rect x="614" y="336" width="432" height="46" rx="5" fill="#161b22" stroke="#30363d"/>
+  <text x="830" y="357" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">DirectWrite&lt;port&gt;() / DirectRead&lt;port&gt;()</text>
+  <text x="830" y="372" text-anchor="middle" font-size="9" fill="#8b949e">per-signal static functions  ·  WriteQueue for delayed writes  ·  VPI optional</text>
+
+  <!-- VTop box -->
+  <rect x="614" y="394" width="432" height="110" rx="7" fill="#0d1117" stroke="#d29922" stroke-width="1.4" stroke-dasharray="6,3"/>
+  <text x="830" y="416" text-anchor="middle" font-size="12" font-weight="700" fill="#d29922">VTop  (Verilated C++ model)</text>
+  <text x="830" y="433" text-anchor="middle" font-size="10" fill="#8b949e">PicoRV32 RISC-V soft-core RTL compiled by Verilator</text>
+  <text x="830" y="453" text-anchor="middle" font-size="10" fill="#8b949e">32-bit Harvard architecture</text>
+
+  <!-- picorv32 internal blocks inside VTop -->
+  <g font-size="9" text-anchor="middle" font-weight="600">
+    <rect x="628" y="462" width="80" height="30" rx="4" fill="#1a1600" stroke="#d29922" stroke-width=".8"/>
+    <text x="668" y="481" fill="#d29922">Fetch</text>
+
+    <rect x="720" y="462" width="80" height="30" rx="4" fill="#1a1600" stroke="#d29922" stroke-width=".8"/>
+    <text x="760" y="481" fill="#d29922">Decode</text>
+
+    <rect x="812" y="462" width="80" height="30" rx="4" fill="#1a1600" stroke="#d29922" stroke-width=".8"/>
+    <text x="852" y="481" fill="#d29922">ALU/Execute</text>
+
+    <rect x="904" y="462" width="80" height="30" rx="4" fill="#1a1600" stroke="#d29922" stroke-width=".8"/>
+    <text x="944" y="481" fill="#d29922">Mem I/F</text>
+
+    <!-- mini pipeline arrows -->
+    <line x1="708" y1="477" x2="720" y2="477" stroke="#d29922" stroke-width=".8" marker-end="url(#aBi)"/>
+    <line x1="800" y1="477" x2="812" y2="477" stroke="#d29922" stroke-width=".8" marker-end="url(#aBi)"/>
+    <line x1="892" y1="477" x2="904" y2="477" stroke="#d29922" stroke-width=".8" marker-end="url(#aBi)"/>
+  </g>
+
+  <!-- PCPI interface call-out -->
+  <rect x="598" y="526" width="464" height="60" rx="6" fill="#0d1117" stroke="#bc8cff" stroke-width="1.2"/>
+  <text x="830" y="546" text-anchor="middle" font-size="10" font-weight="600" fill="#bc8cff">PCPI Co-Processor Interface</text>
+  <text x="830" y="561" text-anchor="middle" font-size="9" fill="#8b949e">pcpi_valid / pcpi_insn / pcpi_rs1 / pcpi_rs2  →  (from Pico)</text>
+  <text x="830" y="574" text-anchor="middle" font-size="9" fill="#8b949e">pcpi_wr / pcpi_rd / pcpi_wait / pcpi_ready  ←  (to Pico)</text>
+
+  <!-- Program memory note -->
+  <rect x="598" y="600" width="464" height="76" rx="6" fill="#161b22" stroke="#30363d"/>
+  <text x="830" y="621" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Program Memory Interface</text>
+  <text x="830" y="638" text-anchor="middle" font-size="9" fill="#8b949e">mem_valid / mem_addr / mem_wdata / mem_wstrb  (Pico → host)</text>
+  <text x="830" y="651" text-anchor="middle" font-size="9" fill="#8b949e">mem_ready / mem_rdata  (host → Pico)</text>
+  <text x="830" y="666" text-anchor="middle" font-size="9" fill="#484f58">⚠ actual memory servicing not yet wired through RevCodeletCoProc</text>
+
+  <!-- ══════════════════════════════════════════════
+       Cross-component arrows
+  ══════════════════════════════════════════════ -->
+  <!-- RevMem ↔ RevCore (memory access) -->
+  <line x1="260" y1="159" x2="290" y2="278" stroke="#8b949e" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aGray)"/>
+  <text x="290" y="225" font-size="9" fill="#8b949e" transform="rotate(-70,290,225)">mem access</text>
+
+  <!-- RevLoader → RevCore -->
+  <line x1="150" y1="264" x2="150" y2="278" stroke="#8b949e" stroke-width="1.2" marker-end="url(#aGray)"/>
+  <text x="156" y="275" font-size="9" fill="#8b949e">load ELF</text>
+
+  <!-- ══════════════════════════════════════════════
+       Legend
+  ══════════════════════════════════════════════ -->
+  <rect x="20" y="696" width="1060" height="20" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <g font-size="10" fill="#8b949e">
+    <line x1="36" y1="706" x2="65" y2="706" stroke="#d29922" stroke-width="1.4" marker-end="url(#aBi)" marker-start="url(#aBiL)"/>
+    <text x="70" y="710">SST Link (PortEvent)</text>
+    <line x1="225" y1="706" x2="254" y2="706" stroke="#3fb950" stroke-width="1.4" marker-end="url(#aR)"/>
+    <text x="260" y="710">pipeline flow</text>
+    <line x1="365" y1="706" x2="394" y2="706" stroke="#bc8cff" stroke-width="1.4" marker-end="url(#aPurp)"/>
+    <text x="400" y="710">subcomponent call</text>
+    <line x1="540" y1="706" x2="569" y2="706" stroke="#8b949e" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aGray)"/>
+    <text x="575" y="710">internal ref</text>
+    <rect x="690" y="699" width="10" height="10" rx="2" fill="none" stroke="#d29922" stroke-width="1.2" stroke-dasharray="4,2"/>
+    <text x="706" y="710">Verilated RTL boundary</text>
+    <rect x="880" y="699" width="10" height="10" rx="2" fill="none" stroke="#bc8cff" stroke-width="1.2"/>
+    <text x="896" y="710">stub / unimplemented</text>
+  </g>
+</svg>
