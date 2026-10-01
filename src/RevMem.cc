@@ -15,6 +15,7 @@
 #include <memory>
 #include <new>
 #include <utility>
+#include "RevScratchpad.h"
 
 namespace SST::RevCPU {
 
@@ -38,6 +39,19 @@ RevMem::RevMem( uint64_t memSize, RevOpts* opts, SST::Output* output )
   if( !physMem )
     output->fatal( CALL_INFO, -1, "Error: could not allocate backing memory\n" );
   AddMemSegAt( stacktop, 1024 );  // Add the 1024 bytes for the program header information
+}
+
+RevMem::RevMem( uint64_t memSize, RevOpts* opts, SST::Output* output, bool scratch )
+  : physMem( new( std::nothrow ) unsigned char[memSize]{} ), memSize( memSize ), opts( opts ), output( output ), pageSize( 262144 ),
+    addrShift( uint32_t( lg( pageSize ) ) ), stacktop( _REVMEM_BASE_ + memSize - 1024 ) {
+  if( !physMem )
+    output->fatal( CALL_INFO, -1, "Error: could not allocate backing memory\n" );
+  AddMemSegAt( stacktop, 1024 );  // Add the 1024 bytes for the program header information
+  if (scratch) {
+    // TODO: this is almost certainly going to break something. How to fit it properly in the 
+    // RevMem address space? Shouldn't be lower than _REVMEM_BASE_ I guess
+    scratchpad = new RevScratchpad(0, 1024);
+  }
 }
 
 void RevMem::HandleMemFault( uint32_t width ) {
@@ -525,6 +539,18 @@ bool RevMem::WriteMem( uint32_t Hart, uint64_t Addr, uint32_t Len, const void* D
   RevokeFuture( Addr );  // revoke the future if it is present
   auto* DataMem = static_cast<const unsigned char*>( Data );
 
+  if (scratchpad && scratchpad->contains(Addr)) {
+    // apply write
+    if (Len == 4) {
+      return scratchpad->write32(Addr, *reinterpret_cast<const uint32_t *>(DataMem));
+    } else if (Len == 8) {
+      return scratchpad->write64(Addr, *reinterpret_cast<const uint64_t *>(DataMem));
+    } else {
+      // Scratchpad only supports 32-bit and 64-bit accesses
+      return false;
+    }
+  }
+
   if( ctrl ) {
     // write the memory using RevMemCtrl
     ctrl->sendWRITERequest( Hart, Addr, 0, Len, flags, const_cast<uint8_t*>( DataMem ) );
@@ -569,6 +595,17 @@ bool RevMem::ReadMem( uint32_t Hart, uint64_t Addr, uint32_t Len, void* Target, 
 #endif
 
   auto* DataMem = static_cast<unsigned char*>( Target );
+  if (scratchpad && scratchpad->contains(Addr)) {
+    // apply write
+    if (Len == 4) {
+      return scratchpad->read32(Addr, reinterpret_cast<uint32_t *>(DataMem));
+    } else if (Len == 8) {
+      return scratchpad->read64(Addr, reinterpret_cast<uint64_t *>(DataMem));
+    } else {
+      // Scratchpad only supports 32 or 64 bit accesses
+      return false;
+    }
+  }
 
   if( ctrl ) {
     // read the memory using RevMemCtrl

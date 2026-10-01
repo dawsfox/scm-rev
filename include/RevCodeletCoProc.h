@@ -23,6 +23,7 @@
 
 // -- Rev Headers 
 #include "RevCoProc.h"
+#include "RevScratchpad.h"
 
 #include "verilatorSSTAPI.h"
 
@@ -129,7 +130,7 @@ public:
                               );
 
   /// default constructor
-  RevCodeletCoProc( ComponentId_t id, Params& params, RevCore* parent );
+  RevCodeletCoProc( ComponentId_t id, Params& params, RevCore* parent, RevMem* mem );
 
   /// default destructor
   ~RevCodeletCoProc() final;
@@ -233,6 +234,7 @@ private:
   std::string ActiveResetPort;
   uint8_t ActiveResetValue;
   RevCore* parent;
+  RevMem* mem;
 
 
   std::vector<uint32_t> CuLocalMem;

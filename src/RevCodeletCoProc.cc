@@ -23,8 +23,8 @@ namespace SST::RevCPU {
 // ---------------------------------------------------------------
 // RevCodeletCoProc
 // ---------------------------------------------------------------
-RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* parent)
-  : RevCoProc(id, params, parent), num_instRetired(0), parent(parent) {
+RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* parent, RevMem* mem)
+  : RevCoProc(id, params, parent), num_instRetired(0), parent(parent), mem(mem) {
 
   std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
   cycleCount = 0;
@@ -339,6 +339,8 @@ bool RevCodeletCoProc::CheckInstRqst(){
 // Serves Cu instruction request
 bool RevCodeletCoProc::ServeInstRqst(){
   output->verbose( CALL_INFO, 1, 0, "Attempting to serve pico instruction read\n");
+  uint32_t curr_mem_addr  = fourByteConverter(*(PortMap[ "mem_addr"].second));
+  /*
   // divide by 4 because the addresses are byte addresses
   uint32_t curr_mem_addr  = fourByteConverter(*(PortMap[ "mem_addr"].second)) / 4;
   if (curr_mem_addr > 5) {
@@ -347,8 +349,13 @@ bool RevCodeletCoProc::ServeInstRqst(){
     return false;
   }
   uint32_t inst = CuLocalMem[curr_mem_addr];
+  */
+  uint32_t inst;
+  bool result;
+  result = mem->GetScratchpad()->read32(curr_mem_addr, &inst);
+  
   printf("serving instruction request: %x at %x\n", inst, curr_mem_addr); fflush(stdout);
-  bool result = writeToPort<uint32_t>("mem_rdata", inst);
+  result = result && writeToPort<uint32_t>("mem_rdata", inst);
   printf("writing mem_rdata was %s successful\n", result ? "" : "not"); fflush(stdout);
   return result && writeToPort<uint8_t>("mem_ready", 1);
 }

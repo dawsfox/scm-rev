@@ -49,10 +49,15 @@
 
 namespace SST::RevCPU {
 
+class RevScratchpad;
+
 class RevMem {
 public:
   /// RevMem: standard constructor
   RevMem( uint64_t MemSize, RevOpts* Opts, SST::Output* Output );
+
+  /// RevMem: standard constructor with instruction memory scratchpad flag
+  RevMem( uint64_t MemSize, RevOpts* Opts, SST::Output* Output, bool scratch );
 
   /// RevMem: standard memory controller constructor
   RevMem( uint64_t memSize, RevOpts* opts, RevMemCtrl* ctrl, SST::Output* output );
@@ -364,6 +369,8 @@ public:
 
   void DumpThreadMem( const uint64_t bytesPerRow = 16, std::ostream& outputStream = std::cout );
 
+  RevScratchpad * GetScratchpad() { return scratchpad; }
+
 protected:
   unsigned char* physMem = nullptr;  ///< RevMem: memory container
 
@@ -411,6 +418,9 @@ private:
 
   std::vector<uint64_t>                                     FutureRes{};  ///< RevMem: future operation reservations
   std::unordered_map<uint32_t, std::pair<uint64_t, size_t>> LRSC{};       ///< RevMem: load reserve/store conditional set
+
+  //std::unique_ptr<RevScratchpad> scratchpad;
+  RevScratchpad * scratchpad;
 };                                                                        // class RevMem
 
 }  // namespace SST::RevCPU
