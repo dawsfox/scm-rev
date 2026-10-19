@@ -23,6 +23,7 @@ set(RevCPUSrcs
   RevRegFile.cc
   RevThread.cc
   RevCodeletCoProc.cc
+  RevScratchpad.cc
   )
 
 add_subdirectory(../common common)

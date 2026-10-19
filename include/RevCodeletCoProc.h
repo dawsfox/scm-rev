@@ -130,7 +130,7 @@ public:
                               );
 
   /// default constructor
-  RevCodeletCoProc( ComponentId_t id, Params& params, RevCore* parent, RevMem* mem );
+  RevCodeletCoProc( ComponentId_t id, Params& params, RevCore* parent);
 
   /// default destructor
   ~RevCodeletCoProc() final;

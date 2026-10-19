@@ -120,6 +120,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params ) : SST::Compon
   EnableMemH             = params.find<bool>( "enableMemH", 0 );
   CodeletCoproc          = params.find<bool>("codeletCoprocessor", 0);
   if( !EnableMemH ) {
+    // enable scratchpad if CodeletCoproc is in use
     Mem = std::make_unique<RevMem>( memSize, Opts.get(), &output, CodeletCoproc );
   } else {
     Ctrl = std::unique_ptr<RevMemCtrl>( loadUserSubComponent<RevMemCtrl>( "memory" ) );
@@ -152,7 +153,7 @@ RevCPU::RevCPU( SST::ComponentId_t id, const SST::Params& params ) : SST::Compon
   if( EnableCoProc ) {
     // Create the co-processor objects
     for( uint32_t i = 0; i < numCores; i++ ) {
-      RevCoProc* CoProc = loadUserSubComponent<RevCoProc>( "co_proc", SST::ComponentInfo::SHARE_NONE, Procs[i].get(), Mem.get() );
+      RevCoProc* CoProc = loadUserSubComponent<RevCoProc>( "co_proc", SST::ComponentInfo::SHARE_NONE, Procs[i].get() );
       if( !CoProc ) {
         output.fatal( CALL_INFO, -1, "Error: failed to inintialize the co-processor subcomponent\n" );
       }

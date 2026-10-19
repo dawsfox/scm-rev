@@ -23,8 +23,8 @@ namespace SST::RevCPU {
 // ---------------------------------------------------------------
 // RevCodeletCoProc
 // ---------------------------------------------------------------
-RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* parent, RevMem* mem)
-  : RevCoProc(id, params, parent), num_instRetired(0), parent(parent), mem(mem) {
+RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* parent)
+  : RevCoProc(id, params, parent), num_instRetired(0), parent(parent) {
 
   std::string ClockFreq = params.find<std::string>("clock", "1Ghz");
   cycleCount = 0;
@@ -35,6 +35,8 @@ RevCodeletCoProc::RevCodeletCoProc(ComponentId_t id, Params& params, RevCore* pa
   ClockPort     = params.find<std::string>("clockPort", "clock");
   ResetLowPort  = params.find<std::string>("resetLowPort", "resetn");
   ResetHighPort = params.find<std::string>("resetHighPort", "NONE");
+
+  mem = &(parent->GetMem());
 
   const int NumPorts = params.find<int>( "num_ports", 0 );
   InfoVec.resize( static_cast<size_t>(NumPorts) );
